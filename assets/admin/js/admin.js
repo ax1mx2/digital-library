@@ -24,11 +24,16 @@
             wp.media.model.settings.post.id = book_preview_id_input.val();
             // Create the media frame.
             media_frame = wp.media.frames.media_frame = wp.media({
+                frame: 'select',
                 title: __.media_frame_title || 'Please select a book preview',
                 button: {
                     text: __.select_preview_button || 'Use this book preview'
                 },
-                orderby: 'date',
+                library: {
+                    type: 'application/pdf',
+                    ordre: 'DESC',
+                    orderby: 'date',
+                },
                 multiple: false
             });
 
