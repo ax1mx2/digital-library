@@ -114,7 +114,7 @@ final class Digital_Library {
 	}
 
 	/**
-	 * Method handles adding the admin scripts into the admin panel.
+	 * Method handles adding the admin scripts and styles into the admin panel.
 	 *
 	 * @param string|null $hook The hook(page) name.
 	 */
@@ -125,12 +125,15 @@ final class Digital_Library {
 				array( 'jquery' ), self::VERSION );
 			wp_localize_script( 'digital-library-admin', 'dl_translations',
 				array(
-					'set_to_post_id'        => '',
+					'missing_book_preview'  => __( '(No preview file selected.)', 'digital-library' ),
 					'media_frame_title'     => __( 'Please select a book preview', 'digital-library' ),
 					'select_preview_button' => __( 'Use this book preview', 'digital-library' ),
 				)
 			);
 			wp_enqueue_script( 'digital-library-admin' );
+
+			wp_enqueue_style( 'digital-library-admin', self::url( 'assets/admin/css/styles.css' ),
+				array(), self::VERSION );
 		}
 	}
 
@@ -158,6 +161,8 @@ final class Digital_Library {
 	 * Method adds WooCommerce product fields.
 	 */
 	public function add_book_fields() {
+		global $thepostid;
+
 		echo '<div class="options_group dl-woocommerce-book-field-group">';
 		echo '<div><h2>' . esc_attr( __( 'Book Details', 'digital-library' ) ) . '</h2></div>';
 
@@ -192,13 +197,20 @@ final class Digital_Library {
 		);
 
 		// Display PDF Preview.
+		$preview_id       = intval( get_post_meta( $thepostid, self::BOOK_PREVIEW, true ) );
+		$preview_filename = $preview_id !== 0 ? get_the_title( $preview_id ) : '';
 		?>
-        <p class="form-field <?php echo esc_attr( self::BOOK_PREVIEW ) ?>">
+        <p class="form-field dl <?php echo esc_attr( self::BOOK_PREVIEW ) ?>">
             <label for="book_preview_id"><?php esc_attr_e( 'Book preview', 'digital-library' ) ?></label>
-            <span class="book-preview-indicator"></span>
-            <input id="book_preview_select_button" type="button" class="button"
+            <input id="book_preview_select_button" type="button" class="button button-primary" style="margin-left: 0"
                    value="<?php esc_attr_e( 'Upload a book preview', 'digital-library' ) ?>">
             <input type="hidden" id="book_preview_id" name="<?php echo esc_attr( self::BOOK_PREVIEW ) ?>">
+            <i class="book-preview-indicator" style="margin-inline-start: 10px;"
+               id="book_preview_indicator"><?php echo empty( $preview_filename ) ?
+					esc_attr__( '(No preview file selected.)', 'digital-library' )
+					: esc_html( $preview_filename ) ?></i>
+            <a class="delete" title="<?php esc_attr_e( 'Remove book preview', 'digital-library' ) ?>"
+               id="remote_book_preview_button"><?php esc_html_e( 'Remove book preview', 'digital-library' ) ?></a>
         </p>
 		<?php
 
@@ -211,9 +223,10 @@ final class Digital_Library {
 	 * @param $post_id int The ID of book.
 	 */
 	public function save_book_fields( int $post_id ) {
-		$authors  = &$_POST[ self::BOOK_AUTHORS ];
-		$subtitle = &$_POST[ self::BOOK_SUBTITLE ];
-		$isbn     = &$_POST[ self::BOOK_ISBN ];
+		$authors    = &$_POST[ self::BOOK_AUTHORS ];
+		$subtitle   = &$_POST[ self::BOOK_SUBTITLE ];
+		$isbn       = &$_POST[ self::BOOK_ISBN ];
+		$preview_id = &$_POST[ self::BOOK_PREVIEW ];
 
 		// Update book authors.
 		if ( ! empty( $authors ) ) {
@@ -227,6 +240,12 @@ final class Digital_Library {
 		// Update book isbn.
 		if ( ! empty( $isbn ) ) {
 			update_post_meta( $post_id, self::BOOK_ISBN, wp_kses( $isbn, array() ) );
+		}
+
+		if ( ! empty( $preview_id )
+		     && 0 != ( $preview_id = intval( $preview_id ) )
+		     && 'attachment' === get_post_type( $preview_id ) ) {
+			update_post_meta( $post_id, self::BOOK_PREVIEW, $preview_id );
 		}
 
 	}
