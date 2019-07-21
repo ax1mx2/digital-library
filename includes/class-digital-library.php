@@ -45,11 +45,12 @@ final class Digital_Library {
 		// Initialize hooks.
 		register_activation_hook( DL_PLUGIN_FILE, array( $this, 'activate' ) );
 
-		// Add custom scripts when editing a book.
+		// Define admin-related hooks.
 		if ( is_admin() ) {
+			// Add custom scripts when editing a book.
 			add_action( 'admin_enqueue_scripts', array( $this, 'add_admin_scripts' ) );
-			add_filter( 'post_mime_types', array( $this, 'add_pdf_mime_type' ) );
 		}
+
 		// Add WooCommerce fields.
 		add_action(
 			'woocommerce_product_options_general_product_data',
@@ -135,26 +136,6 @@ final class Digital_Library {
 			wp_enqueue_style( 'digital-library-admin', self::url( 'assets/admin/css/styles.css' ),
 				array(), self::VERSION );
 		}
-	}
-
-	/**
-	 * Method handles adding a custom mime type category to the media library for PDF files.
-	 *
-	 * @param array $post_mime_types The mime type array before the transformation.
-	 *
-	 * @return array The mime type after the transformation.
-	 */
-	public function add_pdf_mime_type( array $post_mime_types ): array {
-		$post_mime_types['application/pdf'] = array(
-			__( 'PDFs', 'digital-library' ),
-			__( 'Manage PDFs', 'digital-library' ),
-			_n_noop(
-				'PDF <span class="count">(%s)</span>',
-				'PDFs <span class="count">(%s)</span>'
-			)
-		);
-
-		return $post_mime_types;
 	}
 
 	/**
