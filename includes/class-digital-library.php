@@ -5,6 +5,7 @@ namespace DL;
 defined( 'ABSPATH' ) || exit();
 
 require_once __DIR__ . '/class-book-search-controller.php';
+require_once __DIR__ . '/class-main-options-page.php';
 
 /**
  * Main of the Digital Library Plugin.
@@ -49,6 +50,9 @@ final class Digital_Library {
 		if ( is_admin() ) {
 			// Add custom scripts when editing a book.
 			add_action( 'admin_enqueue_scripts', array( $this, 'add_admin_scripts' ) );
+
+			// Add custom options page.
+			Main_Options_Page::init();
 		}
 
 		// Add WooCommerce fields.
@@ -62,6 +66,22 @@ final class Digital_Library {
 			array( $this, 'save_book_fields' )
 		);
 		add_action( 'rest_api_init', array( $this, 'register_rest_controllers' ) );
+
+		// Disable comments for all products, if necessary.
+		if ( filter_var( get_option( Main_Options_Page::DISABLE_PRODUCT_COMMENTS ), FILTER_VALIDATE_BOOLEAN ) ) {
+			add_filter( 'comments_open', array( $this, 'disable_comments_for_products' ), 1, 2 );
+		}
+	}
+
+	/**
+	 * @return Digital_Library The main instance of the plugin.
+	 */
+	public static function instance(): self {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
 	}
 
 	/**
@@ -90,17 +110,6 @@ final class Digital_Library {
 		$sub = '/' . ltrim( $sub, '/' );
 
 		return self::$url . $sub;
-	}
-
-	/**
-	 * @return Digital_Library The main instance of the plugin.
-	 */
-	public static function instance(): self {
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-
-		return self::$instance;
 	}
 
 	/**
@@ -136,6 +145,22 @@ final class Digital_Library {
 			wp_enqueue_style( 'digital-library-admin', self::url( 'assets/admin/css/styles.css' ),
 				array(), self::VERSION );
 		}
+	}
+
+	/**
+	 * Method handles the disabling of comments for products, if necessary.
+	 *
+	 * @param bool $open Specifies whether the comments are enabled for this post.
+	 * @param int $post_id Specifies the post ID.
+	 *
+	 * @return bool The new value.
+	 */
+	public function disable_comments_for_products( bool $open, int $post_id ): bool {
+		if ( 'product' !== get_post_type( $post_id ) ) {
+			return $open;
+		}
+
+		return false;
 	}
 
 	/**
@@ -185,7 +210,8 @@ final class Digital_Library {
             <label for="book_preview_id"><?php esc_attr_e( 'Book preview', 'digital-library' ) ?></label>
             <input id="book_preview_select_button" type="button" class="button button-primary" style="margin-left: 0"
                    value="<?php esc_attr_e( 'Upload a book preview', 'digital-library' ) ?>">
-            <input type="hidden" id="book_preview_id" name="<?php echo esc_attr( self::BOOK_PREVIEW ) ?>">
+            <input type="hidden" id="book_preview_id" name="<?php echo esc_attr( self::BOOK_PREVIEW ) ?>"
+                   value="<?php echo $preview_id ?>">
             <i class="book-preview-indicator" style="margin-inline-start: 10px;"
                id="book_preview_indicator"><?php echo empty( $preview_filename ) ?
 					esc_attr__( '(No preview file selected.)', 'digital-library' )
