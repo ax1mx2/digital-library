@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="46a2d4df-4199-4cf3-8924-f5825fc4a3c2" name="Wordpress" url="http://localhost/wordpress">
+        <fileTransfer port="0" mountedRoot="C:\xampp\htdocs\wordpress" accessType="MOUNT" />
+      </webServer>
+      <webServer id="f422d3bb-82e2-4f5c-9afd-b5fa77d8ecf6" name="Somnishop.tk" url="http://somnishop.tk">
+        <fileTransfer host="somnishop.tk" port="21" rootFolder="/httpdocs" accessType="FTPS">
+          <advancedOptions>
+            <advancedOptions controlEncoding="utf-8" dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="21" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
