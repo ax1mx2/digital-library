@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit();
 
 require_once __DIR__ . '/class-book-search-controller.php';
 require_once __DIR__ . '/class-main-options-page.php';
+require_once __DIR__ . '/class-book-preview-page.php';
 
 /**
  * Main of the Digital Library Plugin.
@@ -46,13 +47,19 @@ final class Digital_Library {
 		// Initialize hooks.
 		register_activation_hook( DL_PLUGIN_FILE, array( $this, 'activate' ) );
 
-		// Define admin-related hooks.
 		if ( is_admin() ) {
 			// Add custom scripts when editing a book.
 			add_action( 'admin_enqueue_scripts', array( $this, 'add_admin_scripts' ) );
 
 			// Add custom options page.
 			Main_Options_Page::init();
+		} else {
+			Book_Preview_Page::init();
+
+			// Disable comments for all products, if necessary.
+			if ( filter_var( get_option( Main_Options_Page::DISABLE_PRODUCT_COMMENTS ), FILTER_VALIDATE_BOOLEAN ) ) {
+				add_filter( 'comments_open', array( $this, 'disable_comments_for_products' ), 1, 2 );
+			}
 		}
 
 		// Add WooCommerce fields.
@@ -66,11 +73,6 @@ final class Digital_Library {
 			array( $this, 'save_book_fields' )
 		);
 		add_action( 'rest_api_init', array( $this, 'register_rest_controllers' ) );
-
-		// Disable comments for all products, if necessary.
-		if ( filter_var( get_option( Main_Options_Page::DISABLE_PRODUCT_COMMENTS ), FILTER_VALIDATE_BOOLEAN ) ) {
-			add_filter( 'comments_open', array( $this, 'disable_comments_for_products' ), 1, 2 );
-		}
 	}
 
 	/**
@@ -121,7 +123,15 @@ final class Digital_Library {
 		if ( ! is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 			deactivate_plugins( $plugin );
 		}
+		Book_Preview_Page::instance()->activate();
 	}
+
+	/**
+	 * Method carries out addititonal logic when the plugin is deactivated.
+	 */
+	public function deactivate(): void {
+	    Book_Preview_Page::instance()->activate();
+    }
 
 	/**
 	 * Method handles adding the admin scripts and styles into the admin panel.

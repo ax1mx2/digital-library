@@ -37,7 +37,7 @@ final class Main_Options_Page {
 	/**
 	 * @return Main_Options_Page The instance of the main options page.
 	 */
-	public static function instance(): self {
+	protected static function instance(): self {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 		}
@@ -46,9 +46,9 @@ final class Main_Options_Page {
 	}
 
 	/**
-	 * Method initializes
+	 * Method initializes the default class instance.
 	 */
-	public static function init() {
+	public static function init(): void {
 		self::instance();
 	}
 
