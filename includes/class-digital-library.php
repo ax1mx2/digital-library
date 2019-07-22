@@ -47,6 +47,9 @@ final class Digital_Library {
 		// Initialize hooks.
 		register_activation_hook( DL_PLUGIN_FILE, array( $this, 'activate' ) );
 
+		// Add plugin translations.
+		add_action( 'plugins_loaded', array( $this, 'add_translations' ) );
+
 		if ( is_admin() ) {
 			// Add custom scripts when editing a book.
 			add_action( 'admin_enqueue_scripts', array( $this, 'add_admin_scripts' ) );
@@ -130,8 +133,19 @@ final class Digital_Library {
 	 * Method carries out addititonal logic when the plugin is deactivated.
 	 */
 	public function deactivate(): void {
-	    Book_Preview_Page::instance()->activate();
-    }
+		Book_Preview_Page::instance()->activate();
+	}
+
+	/**
+	 * Method handles adding the plugin's translations.
+	 */
+	public function add_translations() {
+		$locale = apply_filters( 'plugin_locale', get_locale(), 'digital-library' );
+
+		load_textdomain( 'digital-library', WP_LANG_DIR . '/digital-library-' . $locale . '.mo' );
+		load_plugin_textdomain( 'digital-library', false,
+			basename( dirname( DL_PLUGIN_FILE ) ) . '/languages' );
+	}
 
 	/**
 	 * Method handles adding the admin scripts and styles into the admin panel.
@@ -250,6 +264,7 @@ final class Digital_Library {
 			update_post_meta( $post_id, self::BOOK_AUTHORS, wp_kses( $authors, array() ) );
 		}
 
+		// Update book subtitle.
 		if ( ! empty( $subtitle ) ) {
 			update_post_meta( $post_id, self::BOOK_SUBTITLE, wp_kses( $subtitle, array() ) );
 		}
@@ -259,6 +274,7 @@ final class Digital_Library {
 			update_post_meta( $post_id, self::BOOK_ISBN, wp_kses( $isbn, array() ) );
 		}
 
+		// Update book preview.
 		if ( ! empty( $preview_id )
 		     && 0 != ( $preview_id = intval( $preview_id ) )
 		     && 'attachment' === get_post_type( $preview_id ) ) {

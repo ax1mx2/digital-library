@@ -1,0 +1,116 @@
+# Copyright (C) 2019 A. Milanov
+# This file is distributed under the same license as the Digital Library plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Digital Library 0.0.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/digital-"
+"library\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2019-07-22T08:31:02+00:00\n"
+"PO-Revision-Date: 2019-07-22 11:37+0300\n"
+"X-Generator: Poedit 2.2.3\n"
+"X-Domain: digital-library\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: bg_BG\n"
+
+#. Plugin Name of the plugin
+msgid "Digital Library"
+msgstr "Дигитална Библиотека"
+
+#. Description of the plugin
+msgid ""
+"Auxiliary plugin that enables the creation of digital libraries with "
+"WooCommerce."
+msgstr ""
+"Помощно разширение, което спомага създаването на дигитални библиотеки "
+"с WooCommerce."
+
+#. Author of the plugin
+msgid "A. Milanov"
+msgstr "А. Миланов"
+
+#: includes/class-book-preview-page.php:115
+msgid "Open the book preview"
+msgstr "Преглед на книгата"
+
+#: includes/class-digital-library.php:148
+#: includes/class-digital-library.php:227
+msgid "(No preview file selected.)"
+msgstr "(Не е избран файл.)"
+
+#: includes/class-digital-library.php:149
+msgid "Please select a book preview"
+msgstr "Моля изберете файл, който да послужи за преглед на книгата"
+
+#: includes/class-digital-library.php:150
+msgid "Use this book preview"
+msgstr "Използвай тази книга"
+
+#: includes/class-digital-library.php:183
+msgid "Book Details"
+msgstr "Детайли за книгата"
+
+#: includes/class-digital-library.php:189
+msgid "Book Authors"
+msgstr "Автори на книгата"
+
+#: includes/class-digital-library.php:190
+msgid ""
+"Peter Petrov\n"
+"Dragan Draganov\n"
+"..."
+msgstr ""
+"Петър Петров\n"
+"Драган Драганов\n"
+"..."
+
+#: includes/class-digital-library.php:192
+msgid "Enter each author name on a new line."
+msgstr "Въведете имената на всеки автор на нов ред."
+
+#: includes/class-digital-library.php:202
+msgid "Book Subtitle"
+msgstr "Подзаглавие на книга"
+
+#: includes/class-digital-library.php:211
+msgid "Book ISBN"
+msgstr "ISBN на книга"
+
+#: includes/class-digital-library.php:220
+msgid "Book preview"
+msgstr "Преглед на книга"
+
+#: includes/class-digital-library.php:222
+msgid "Upload a book preview"
+msgstr "Качване на преглед на книга"
+
+#: includes/class-digital-library.php:229
+#: includes/class-digital-library.php:230
+msgid "Remove book preview"
+msgstr "Премахване на преглед на книга"
+
+#: includes/class-main-options-page.php:71
+#: includes/class-main-options-page.php:72
+msgctxt "settings"
+msgid "Digital Library"
+msgstr "Дигитална Библиотека"
+
+#: includes/class-main-options-page.php:85
+msgid "Digital Library Settings"
+msgstr "Настройки на Дигитална Библиотека"
+
+#: includes/class-main-options-page.php:86
+msgid ""
+"This plugin enables the creation of digital libraries with the help of "
+"WooCommerce."
+msgstr ""
+"Това разширение спомага създаването на дигитални библиотеки в "
+"комбинация с WooCommerce."
+
+#: includes/class-main-options-page.php:110
+msgid "Disable comments for all products."
+msgstr "Изключване на отзивите за всички продукти."
