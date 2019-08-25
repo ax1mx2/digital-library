@@ -21,7 +21,7 @@
                     },
                     library: {
                         type: 'application/pdf',
-                        ordre: 'DESC',
+                        order: 'DESC',
                         orderby: 'date',
                     },
                     multiple: false

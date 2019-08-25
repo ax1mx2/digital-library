@@ -65,6 +65,12 @@ final class Digital_Library {
 			}
 		}
 
+		// Customize WooCommerce.
+		add_filter( 'woocommerce_locate_template',
+			array( $this, 'change_product_category_template' ), 10, 3 );
+
+		add_action( 'wp_enqueue_scripts', array( $this, 'add_scripts' ), 10, 1 );
+
 		// Add WooCommerce fields.
 		add_action(
 			'woocommerce_product_options_general_product_data',
@@ -150,7 +156,7 @@ final class Digital_Library {
 	/**
 	 * Method handles adding the admin scripts and styles into the admin panel.
 	 *
-	 * @param string|null $hook The hook(page) name.
+	 * @param string|null $hook The hook (page) name.
 	 */
 	public function add_admin_scripts( ?string $hook ) {
 		if ( 'post.php' === $hook && 'product' === get_post_type() ) {
@@ -172,6 +178,18 @@ final class Digital_Library {
 	}
 
 	/**
+	 * Method handles adding the scripts and styles to the front panel.
+	 *
+	 */
+	public function add_scripts() {
+		if ( is_product_category() ) {
+			wp_enqueue_script( 'digital-library-widgets',
+				self::url( 'front-panel/build/bundle.js' ), array(),
+				self::VERSION, true );
+		}
+	}
+
+	/**
 	 * Method handles the disabling of comments for products, if necessary.
 	 *
 	 * @param bool $open Specifies whether the comments are enabled for this post.
@@ -185,6 +203,29 @@ final class Digital_Library {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Method handles changing the product category template of WooCommerce,
+	 * or the respective theme.
+	 *
+	 * @param string $template
+	 * @param string $template_name
+	 * @param string $template_path
+	 *
+	 * @return string The name of the new template file.
+	 */
+	public function change_product_category_template(
+		string $template,
+		string $template_name = '',
+		string $template_path = ''
+	) {
+		$basename = basename( $template );
+		if ( 'archive-product.php' === $basename ) {
+			return $this->dir( 'templates/archive-product.php' );
+		}
+
+		return $template;
 	}
 
 	/**
@@ -237,11 +278,15 @@ final class Digital_Library {
             <input type="hidden" id="book_preview_id" name="<?php echo esc_attr( self::BOOK_PREVIEW ) ?>"
                    value="<?php echo $preview_id ?>">
             <i class="book-preview-indicator" style="margin-inline-start: 10px;"
-               id="book_preview_indicator"><?php echo empty( $preview_filename ) ?
+               id="book_preview_indicator">
+				<?php echo empty( $preview_filename ) ?
 					esc_attr__( '(No preview file selected.)', 'digital-library' )
-					: esc_html( $preview_filename ) ?></i>
+					: esc_html( $preview_filename ) ?>
+            </i>
             <a class="delete" title="<?php esc_attr_e( 'Remove book preview', 'digital-library' ) ?>"
-               id="remote_book_preview_button"><?php esc_html_e( 'Remove book preview', 'digital-library' ) ?></a>
+               id="remote_book_preview_button">
+				<?php esc_html_e( 'Remove book preview', 'digital-library' ) ?>
+            </a>
         </p>
 		<?php
 
