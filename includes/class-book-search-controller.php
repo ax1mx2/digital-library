@@ -35,19 +35,40 @@ class Book_Search_Controller extends WP_REST_Controller {
 	 * @return \WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$query = new WP_Query( array(
+		global $wpdb;
+		$args = array(
 			'post_type'      => self::POST_TYPE,
 			'posts_per_page' => $request['per_page'] ?? 20,
 			'page'           => $request['page'] ?? 1,
-			'meta_query'     => array(
-				array(
-					'key'     => Digital_Library::BOOK_ISBN,
-					'value'   => $request['book_title'],
-					'type'    => 'CHAR',
-					'compare' => 'LIKE'
-				)
-			)
-		) );
+			'meta_query'     => array(),
+			'tax_query'      => array()
+		);
+		if ( isset( $request['category'] ) ) {
+			$args['tax_query'][] = array(
+				'taxonomy'         => 'product_cat',
+				'field'            => 'term_id',
+				'terms'            => $request['category'],
+				'operator'         => 'IN',
+				'include_children' => true
+			);
+		}
+		if ( isset( $request['author'] ) ) {
+			$args['meta_query'][] = array(
+				'key'     => Digital_Library::BOOK_AUTHORS,
+				'value'   => $wpdb->esc_like( $request['author'] ),
+				'type'    => 'CHAR',
+				'compare' => 'LIKE'
+			);
+		}
+		if ( isset( $request['title'] ) ) {
+			$args['meta_query'][] = array(
+				'key'     => Digital_Library::BOOK_TITLE,
+				'value'   => $wpdb->esc_like( $request['title'] ),
+				'type'    => 'CHAR',
+				'compare' => 'LIKE'
+			);
+		}
+		$query = new WP_Query( $args );
 
 		$res = $query->get_posts();
 

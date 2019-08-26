@@ -16,6 +16,7 @@ final class Digital_Library {
 	public const VERSION = '0.0.1';
 	public const REST_API_NAMESPACE = 'dl/v1';
 	// Field name constants
+	public const BOOK_TITLE = 'dl_book_title';
 	public const BOOK_SUBTITLE = 'dl_book_subtitle';
 	public const BOOK_AUTHORS = 'dl_book_authors';
 	public const BOOK_ISBN = 'dl_book_isbn';
@@ -299,19 +300,26 @@ final class Digital_Library {
 	 * @param $post_id int The ID of book.
 	 */
 	public function save_book_fields( int $post_id ) {
+		$title      = get_the_title( $post_id );
 		$authors    = &$_POST[ self::BOOK_AUTHORS ];
 		$subtitle   = &$_POST[ self::BOOK_SUBTITLE ];
 		$isbn       = &$_POST[ self::BOOK_ISBN ];
 		$preview_id = &$_POST[ self::BOOK_PREVIEW ];
 
-		// Update book authors.
-		if ( ! empty( $authors ) ) {
-			update_post_meta( $post_id, self::BOOK_AUTHORS, wp_kses( $authors, array() ) );
+		// Update book title (just for indexing purposes).
+		if ( ! empty( $title ) ) {
+			update_post_meta( $post_id, self::BOOK_TITLE,
+				wp_kses( get_the_title( $post_id ), array() ) );
 		}
 
 		// Update book subtitle.
 		if ( ! empty( $subtitle ) ) {
 			update_post_meta( $post_id, self::BOOK_SUBTITLE, wp_kses( $subtitle, array() ) );
+		}
+
+		// Update book authors.
+		if ( ! empty( $authors ) ) {
+			update_post_meta( $post_id, self::BOOK_AUTHORS, wp_kses( $authors, array() ) );
 		}
 
 		// Update book isbn.
