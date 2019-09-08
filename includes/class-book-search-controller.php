@@ -16,6 +16,7 @@ defined( 'ABSPATH' ) || exit();
 class Book_Search_Controller extends WP_REST_Controller {
 
 	private const POST_TYPE = 'product';
+	public const REST_BASE = '/book-search';
 
 	/**
 	 * Book_Search_Controller constructor.
@@ -24,7 +25,11 @@ class Book_Search_Controller extends WP_REST_Controller {
 	 */
 	public function __construct( string $namespace ) {
 		$this->namespace = $namespace;
-		$this->rest_base = '/book-search';
+		$this->rest_base = self::REST_BASE;
+	}
+
+	private static function trim( string $str ): string {
+		return preg_replace( '/(^\s+)|(\s+$)/us', '', $str );
 	}
 
 	/**
@@ -38,12 +43,17 @@ class Book_Search_Controller extends WP_REST_Controller {
 		global $wpdb;
 		$args = array(
 			'post_type'      => self::POST_TYPE,
-			'posts_per_page' => $request['per_page'] ?? 20,
-			'page'           => $request['page'] ?? 1,
+			'post_status'    => 'publish',
+			'orderby'        => 'post_date',
+			'order'          => 'DESC',
+			'posts_per_page' => $request['per_page'],
+			'paged'          => $request['page'],
 			'meta_query'     => array(),
 			'tax_query'      => array()
 		);
-		if ( isset( $request['category'] ) ) {
+
+		$category_id = $request['category'];
+		if ( isset( $category_id ) and is_int( $category_id ) ) {
 			$args['tax_query'][] = array(
 				'taxonomy'         => 'product_cat',
 				'field'            => 'term_id',
@@ -52,34 +62,157 @@ class Book_Search_Controller extends WP_REST_Controller {
 				'include_children' => true
 			);
 		}
-		if ( isset( $request['author'] ) ) {
+
+		$title_search = self::trim( $request['title'] ?? '' );
+		if ( ! empty ( $title_search ) ) {
+			add_filter( 'posts_join', array( $this, 'title_filter_join' ), 10, 2 );
+			add_filter( 'posts_where', array( $this, 'title_filter_where' ), 10, 2 );
+			add_filter( 'posts_groupby', array( $this, 'title_filter_groupby' ), 10, 2 );
+			// Search by post title.
+			$args['search_book_title'] = $title_search;
+		}
+
+		$authors_search = self::trim( $request['authors'] ?? '' );
+		if ( ! empty( $authors_search ) ) {
 			$args['meta_query'][] = array(
 				'key'     => Digital_Library::BOOK_AUTHORS,
-				'value'   => $wpdb->esc_like( $request['author'] ),
+				'value'   => $authors_search,
 				'type'    => 'CHAR',
 				'compare' => 'LIKE'
 			);
 		}
-		if ( isset( $request['title'] ) ) {
-			$args['meta_query'][] = array(
-				'key'     => Digital_Library::BOOK_TITLE,
-				'value'   => $wpdb->esc_like( $request['title'] ),
-				'type'    => 'CHAR',
-				'compare' => 'LIKE'
-			);
-		}
+
 		$query = new WP_Query( $args );
 
-		$res = $query->get_posts();
+		$books = array_map( array( $this, 'map_book' ), $query->get_posts() );
 
-		return new WP_REST_Response( $res, 200 );
+		$response = array(
+			'pages' => $query->max_num_pages,
+			'books' => $books
+		);
+
+		return new WP_REST_Response( $response, 200 );
+	}
+
+	private function map_book( \WP_Post $post ): array {
+		$product  = wc_get_product( $post->ID );
+		$image_id = '';
+		if ( ! empty( $product->get_image_id() ) ) {
+			$image_id = $product->get_image_id();
+		} elseif ( ! empty( $product->get_parent_id() ) ) {
+			$parent_product = wc_get_product( $product->get_parent_id() );
+			$image_id       = $parent_product->get_image_id();
+		}
+
+		if ( ! empty( $image_id ) ) {
+			list( $thumbnail_src ) = wp_get_attachment_image_src( $image_id, array( 290, 400 ) );
+			$thumbnail_srcset = wp_get_attachment_image_srcset( $image_id, array( 290, 400 ) );
+		} else {
+			$thumbnail_src    = wc_placeholder_img_src();
+			$thumbnail_srcset = '';
+		}
+
+		$authors = get_post_meta( $post->ID, Digital_Library::BOOK_AUTHORS, true );
+		$authors = preg_split( '/(\r\n|\n|\r)/', $authors, - 1, PREG_SPLIT_NO_EMPTY );
+
+		return array(
+			'title'     => $post->post_title,
+			'authors'   => $authors,
+			'excerpt'   => $post->post_excerpt,
+			'img'       => $thumbnail_src,
+			'imgSrcSet' => $thumbnail_srcset,
+			'link'      => get_permalink( $post->ID )
+		);
 	}
 
 	public function register_routes() {
 		register_rest_route( $this->namespace, $this->rest_base, array(
-			'methods'  => WP_REST_Server::READABLE,
+			'methods'  => array( WP_REST_Server::READABLE, WP_REST_Server::CREATABLE ),
 			'callback' => array( $this, 'get_items' ),
 			'args'     => $this->get_collection_params()
 		) );
 	}
+
+	/**
+	 * Method handles the custom query variable 'search_book_title'.
+	 *
+	 * @param string $join
+	 * @param WP_Query $wp_query
+	 *
+	 * @return string
+	 */
+	public function title_filter_join( string $join, WP_Query $wp_query ): string {
+		global $wpdb;
+		// Don't process, if not a book (product).
+		if ( 'product' !== $wp_query->get( 'post_type' ) ) {
+			return $join;
+		}
+
+		if ( ! empty( $title_search = $wp_query->get( 'search_book_title' ) ) ) {
+			$join .= " INNER JOIN `{$wpdb->postmeta}` AS `book_subtitles` ON `{$wpdb->posts}`.`ID` = `book_subtitles`.`post_id` ";
+		}
+
+		return $join;
+	}
+
+	/**
+	 * Method handles the custom query variable 'search_book_title'.
+	 *
+	 * @param string $where
+	 * @param WP_Query $wp_query
+	 *
+	 * @return string
+	 */
+	public function title_filter_where( string $where, WP_Query $wp_query ): string {
+		global $wpdb;
+		// Don't process, if not a book (product).
+		if ( 'product' !== $wp_query->get( 'post_type' ) ) {
+			return $where;
+		}
+
+		if ( ! empty( $title_search = $wp_query->get( 'search_book_title' ) ) ) {
+			$where .= $wpdb->prepare(
+				" AND (`{$wpdb->posts}`.`post_title` LIKE %s OR (`book_subtitles`.`meta_key` = %s AND `book_subtitles`.`meta_value` LIKE %s))",
+				array(
+					'%' . $wpdb->esc_like( $title_search ) . '%',
+					Digital_Library::BOOK_SUBTITLE,
+					'%' . $wpdb->esc_like( $title_search ) . '%'
+				)
+			);
+		}
+
+		return $where;
+	}
+
+	/**
+	 * Method handles the custom query variable 'search_book_title'.
+	 *
+	 * @param string $groupby
+	 * @param WP_Query $wp_query
+	 *
+	 * @return string
+	 */
+	public function title_filter_groupby( string $groupby, WP_Query $wp_query ): string {
+		global $wpdb;
+		// Don't process, if not a book (product).
+		if ( 'product' !== $wp_query->get( 'post_type' ) ) {
+			return $groupby;
+		}
+
+		if ( ! empty( $wp_query->get( 'search_book_title' ) ) ) {
+			$id_col     = "{$wpdb->posts}.ID";
+			$group_cols = explode( ',', $groupby );
+			foreach ( $group_cols as $group_col ) {
+				$group_col = self::trim( $group_col );
+				if ( false !== stripos( $groupby, $id_col ) ) {
+					return $groupby;
+				}
+
+				$groupby .= "{$wpdb->posts}.ID";
+			}
+		}
+
+		return $groupby;
+	}
+
 }

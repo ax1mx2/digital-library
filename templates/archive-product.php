@@ -28,6 +28,30 @@ get_header( 'shop' );
  */
 do_action( 'woocommerce_before_main_content' );
 
+$category_id = get_queried_object()->term_id;
+
+function dl_get_product_categories( $parent_category_id = null ) {
+	$categories = get_categories( array(
+		'taxonomy'         => 'product_cat',
+		'hierarchical'     => true,
+		'show_option_none' => '',
+		'hide_empty'       => false,
+		'parent'           => $parent_category_id
+	) );
+
+	$mapped = array();
+	foreach ( $categories as $category ) {
+		$mapped[] = array(
+			'name'            => $category->name,
+			'link'            => get_term_link( $category->term_id ),
+			'childCategories' => dl_get_product_categories( $category->term_id )
+		);
+	}
+
+	return $mapped;
+}
+
+$categories = dl_get_product_categories();
 ?>
     <header class="woocommerce-products-header">
 		<?php if ( apply_filters( 'woocommerce_show_page_title', true ) ) : ?>
@@ -44,59 +68,18 @@ do_action( 'woocommerce_before_main_content' );
 		do_action( 'woocommerce_archive_description' );
 		?>
     </header>
+
+    <div class="book-category-view-app" style="padding: 10px;">
+        <script type="text/props">
+            <?php echo wp_json_encode(
+				array( 'category' => $category_id, 'categories' => $categories )
+			) ?>
+
+
+        </script>
+    </div>
+
 <?php
-
-if ( have_posts() ) {
-	echo '<div class="shop-filters">';
-	/**
-	 * Hook: woocommerce_before_shop_loop.
-	 *
-	 * @hooked wc_print_notices - 10
-	 * @hooked woocommerce_result_count - 20
-	 * @hooked woocommerce_catalog_ordering - 30
-	 */
-	do_action( 'woocommerce_before_shop_loop' );
-	echo '</div>';
-
-	woocommerce_product_loop_start();
-
-	// WC < 3.3 backward compatibility
-	if ( version_compare( WC_VERSION, '3.3', '<' ) ) {
-		woocommerce_product_subcategories();
-	}
-
-	while ( have_posts() ) {
-		the_post();
-
-		/**
-		 * Hook: woocommerce_shop_loop.
-		 *
-		 * @hooked WC_Structured_Data::generate_product_data() - 10
-		 */
-		do_action( 'woocommerce_shop_loop' );
-
-		wc_get_template_part( 'content', 'product' );
-	}
-
-	woocommerce_product_loop_end();
-
-	/**
-	 * Hook: woocommerce_after_shop_loop.
-	 *
-	 * @hooked woocommerce_pagination - 10
-	 */
-	do_action( 'woocommerce_after_shop_loop' );
-
-} else {
-
-	/**
-	 * Hook: woocommerce_no_products_found.
-	 *
-	 * @hooked wc_no_products_found - 10
-	 */
-	do_action( 'woocommerce_no_products_found' );
-
-}
 
 /**
  * Hook: woocommerce_after_main_content.
@@ -104,6 +87,7 @@ if ( have_posts() ) {
  * @hooked woocommerce_output_content_wrapper_end - 10 (outputs closing divs for the content)
  */
 do_action( 'woocommerce_after_main_content' );
+
 
 /**
  * Hook: woocommerce_sidebar.

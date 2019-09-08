@@ -3,19 +3,19 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Digital Library 0.0.1\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/digital-"
-"library\n"
-"Language-Team: \n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/digital-library\n"
+"Language-Team: Български\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-07-22T08:31:02+00:00\n"
-"PO-Revision-Date: 2019-07-22 11:37+0300\n"
-"X-Generator: Poedit 2.2.3\n"
+"POT-Creation-Date: 2019-09-08T18:54:19+00:00\n"
+"PO-Revision-Date: 2019-09-08 18:54+0000\n"
+"X-Generator: Loco https://localise.biz/\n"
 "X-Domain: digital-library\n"
-"Last-Translator: \n"
+"Last-Translator: zografadmin <kokudi@gmail.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: bg_BG\n"
+"X-Loco-Version: 2.3.0; wp-5.2.3"
 
 #. Plugin Name of the plugin
 msgid "Digital Library"
@@ -26,8 +26,8 @@ msgid ""
 "Auxiliary plugin that enables the creation of digital libraries with "
 "WooCommerce."
 msgstr ""
-"Помощно разширение, което спомага създаването на дигитални библиотеки "
-"с WooCommerce."
+"Помощно разширение, което спомага създаването на дигитални библиотеки с "
+"WooCommerce."
 
 #. Author of the plugin
 msgid "A. Milanov"
@@ -37,59 +37,95 @@ msgstr "А. Миланов"
 msgid "Open the book preview"
 msgstr "Преглед на книгата"
 
-#: includes/class-digital-library.php:148
-#: includes/class-digital-library.php:227
+#: includes/class-digital-library.php:170
+#: includes/class-digital-library.php:308
 msgid "(No preview file selected.)"
 msgstr "(Не е избран файл.)"
 
-#: includes/class-digital-library.php:149
+#: includes/class-digital-library.php:171
 msgid "Please select a book preview"
 msgstr "Моля изберете файл, който да послужи за преглед на книгата"
 
-#: includes/class-digital-library.php:150
+#: includes/class-digital-library.php:172
 msgid "Use this book preview"
 msgstr "Използвай тази книга"
 
-#: includes/class-digital-library.php:183
+#: includes/class-digital-library.php:201
+msgid "Loading..."
+msgstr "Зареждане..."
+
+#: includes/class-digital-library.php:202
+msgid "No books available."
+msgstr "Не са намерени книги."
+
+#: includes/class-digital-library.php:203
+msgid "Search"
+msgstr "Търсене"
+
+#: includes/class-digital-library.php:204
+msgid "Title..."
+msgstr "Заглавие..."
+
+#: includes/class-digital-library.php:205
+msgid "Authors..."
+msgstr "Автори..."
+
+#: includes/class-digital-library.php:206
+msgid "Apply"
+msgstr "Приложи"
+
+#: includes/class-digital-library.php:207
+msgid "Categories"
+msgstr "Категории"
+
+#: includes/class-digital-library.php:208
+msgid "Books"
+msgstr "Книги"
+
+#: includes/class-digital-library.php:209
+msgid "Loading more books..."
+msgstr "Зареждане на повече книги..."
+
+#: includes/class-digital-library.php:263
 msgid "Book Details"
 msgstr "Детайли за книгата"
 
-#: includes/class-digital-library.php:189
+#: includes/class-digital-library.php:269
 msgid "Book Authors"
 msgstr "Автори на книгата"
 
-#: includes/class-digital-library.php:190
+#: includes/class-digital-library.php:270
 msgid ""
 "Peter Petrov\n"
 "Dragan Draganov\n"
 "..."
 msgstr ""
-"Петър Петров\n"
-"Драган Драганов\n"
+"Име на автор 1\n"
+"Име на автор 2\n"
 "..."
 
-#: includes/class-digital-library.php:192
+#: includes/class-digital-library.php:272
 msgid "Enter each author name on a new line."
 msgstr "Въведете имената на всеки автор на нов ред."
 
-#: includes/class-digital-library.php:202
+#: includes/class-digital-library.php:282
 msgid "Book Subtitle"
 msgstr "Подзаглавие на книга"
 
-#: includes/class-digital-library.php:211
+#: includes/class-digital-library.php:291
 msgid "Book ISBN"
 msgstr "ISBN на книга"
 
-#: includes/class-digital-library.php:220
+#: includes/class-digital-library.php:300
 msgid "Book preview"
 msgstr "Преглед на книга"
 
-#: includes/class-digital-library.php:222
+#: includes/class-digital-library.php:302
 msgid "Upload a book preview"
 msgstr "Качване на преглед на книга"
 
-#: includes/class-digital-library.php:229
-#: includes/class-digital-library.php:230
+#: includes/class-digital-library.php:311
+#: includes/class-digital-library.php:313
 msgid "Remove book preview"
 msgstr "Премахване на преглед на книга"
 
@@ -108,8 +144,8 @@ msgid ""
 "This plugin enables the creation of digital libraries with the help of "
 "WooCommerce."
 msgstr ""
-"Това разширение спомага създаването на дигитални библиотеки в "
-"комбинация с WooCommerce."
+"Това разширение спомага създаването на дигитални библиотеки в комбинация с "
+"WooCommerce."
 
 #: includes/class-main-options-page.php:110
 msgid "Disable comments for all products."

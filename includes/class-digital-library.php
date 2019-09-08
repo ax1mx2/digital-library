@@ -58,6 +58,7 @@ final class Digital_Library {
 			// Add custom options page.
 			Main_Options_Page::init();
 		} else {
+			// Add routing for book previews.
 			Book_Preview_Page::init();
 
 			// Disable comments for all products, if necessary.
@@ -184,9 +185,32 @@ final class Digital_Library {
 	 */
 	public function add_scripts() {
 		if ( is_product_category() ) {
-			wp_enqueue_script( 'digital-library-widgets',
+			wp_register_script( 'digital-library-widgets',
 				self::url( 'front-panel/build/bundle.js' ), array(),
 				self::VERSION, true );
+
+			wp_localize_script(
+				'digital-library-widgets',
+				'dl_data',
+				array(
+					'fetchBooksUrl'    => get_rest_url(
+						null,
+						self::REST_API_NAMESPACE . Book_Search_Controller::REST_BASE
+					),
+					// Translations
+					'loading'          => __( 'Loading...', 'digital-library' ),
+					'noBooksAvailable' => __( 'No books available.', 'digital-library' ),
+					'search'           => __( 'Search', 'digital-library' ),
+					'titleSearch'      => __( 'Title...', 'digital-library' ),
+					'authorsSearch'    => __( 'Authors...', 'digital-library' ),
+					'applySearch'      => __( 'Apply', 'digital-library' ),
+					'categories'       => __( 'Categories', 'digital-library' ),
+					'books'            => __( 'Books', 'digital-library' ),
+					'loadingMoreBooks' => __( 'Loading more books...', 'digital-library' )
+				)
+			);
+
+			wp_enqueue_script( 'digital-library-widgets' );
 		}
 	}
 

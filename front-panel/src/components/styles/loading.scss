@@ -1,0 +1,19 @@
+.loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  background-color: rgba(100, 100, 100, .5);
+
+  div {
+    color: white;
+    text-shadow: white 1px 0 10px;
+    position: sticky;
+    top: 50%;
+    text-align: center;
+    transform: translateY(-50%);
+    font-size: 2em;
+  }
+}

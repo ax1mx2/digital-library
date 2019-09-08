@@ -1,0 +1,15 @@
+.listView {
+  flex: 5;
+}
+
+.booksList {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-around;
+
+  > div {
+    width: 290px;
+  }
+}
