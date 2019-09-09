@@ -16,11 +16,19 @@ final class Digital_Library {
 	public const VERSION = '0.0.1';
 	public const REST_API_NAMESPACE = 'dl/v1';
 	// Field name constants
-	public const BOOK_TITLE = 'dl_book_title';
+	public const BOOK_UPCOMING = 'dl_book_upcoming';
 	public const BOOK_SUBTITLE = 'dl_book_subtitle';
 	public const BOOK_AUTHORS = 'dl_book_authors';
 	public const BOOK_ISBN = 'dl_book_isbn';
+	public const BOOK_EXCERPT = 'dl_book_excerpt_media_id';
 	public const BOOK_PREVIEW = 'dl_book_preview_media_id';
+	public const BOOK_DATE_PUBLIC = 'dl_book_date_public';
+	public const BOOK_MAIN_CATEGORY = 'dl_book_main_category';
+	public const BOOK_COPYRIGHT = 'dl_book_copyright';
+	public const BOOK_LOCATION = 'dl_book_location';
+	public const BOOK_YEAR = 'dl_book_year';
+	public const BOOK_PAGES = 'dl_book_pages';
+	public const BOOK_EDITION = 'dl_book_edition';
 
 	/**
 	 * @var Digital_Library The main instance of the plugin class.
@@ -138,7 +146,7 @@ final class Digital_Library {
 	}
 
 	/**
-	 * Method carries out addititonal logic when the plugin is deactivated.
+	 * Method carries out additional logic when the plugin is deactivated.
 	 */
 	public function deactivate(): void {
 		Book_Preview_Page::instance()->activate();
@@ -163,18 +171,26 @@ final class Digital_Library {
 	public function add_admin_scripts( ?string $hook ) {
 		if ( 'post.php' === $hook && 'product' === get_post_type() ) {
 			wp_enqueue_media();
-			wp_register_script( 'digital-library-admin', self::url( 'assets/admin/js/admin.js' ),
-				array( 'jquery' ), self::VERSION );
+			wp_register_script(
+				'digital-library-admin',
+				self::url( 'assets/admin/js/admin.js' ),
+				array( 'jquery', 'jquery-ui-core', 'jquery-ui-datepicker' ),
+				self::VERSION );
 			wp_localize_script( 'digital-library-admin', 'dl_translations',
 				array(
-					'missing_book_preview'  => __( '(No preview file selected.)', 'digital-library' ),
-					'media_frame_title'     => __( 'Please select a book preview', 'digital-library' ),
-					'select_preview_button' => __( 'Use this book preview', 'digital-library' ),
+					'missingBookExcerpt'      => __( '(No excerpt file selected.)', 'digital-library' ),
+					'pleaseSelectBookExcerpt' => __( 'Please select a book excerpt', 'digital-library' ),
+					'selectExcerptButton'     => __( 'Use this book excerpt', 'digital-library' ),
+					'missingBookPreview'      => __( '(No preview file selected.)', 'digital-library' ),
+					'pleaseSelectBookPreview' => __( 'Please select a book preview', 'digital-library' ),
+					'selectPreviewButton'     => __( 'Use this book preview', 'digital-library' ),
 				)
 			);
 			wp_enqueue_script( 'digital-library-admin' );
 
-			wp_enqueue_style( 'digital-library-admin', self::url( 'assets/admin/css/styles.css' ),
+			wp_enqueue_style(
+				'digital-library-admin',
+				self::url( 'assets/admin/css/styles.css' ),
 				array(), self::VERSION );
 		}
 	}
@@ -262,37 +278,67 @@ final class Digital_Library {
 		echo '<div class="options_group dl-woocommerce-book-field-group">';
 		echo '<div><h2>' . esc_attr( __( 'Book Details', 'digital-library' ) ) . '</h2></div>';
 
-		// Display authors.
-		woocommerce_wp_textarea_input(
-			array(
-				'id'          => self::BOOK_AUTHORS,
-				'label'       => __( 'Book Authors', 'digital-library' ),
-				'placeholder' => __( "Peter Petrov\nDragan Draganov\n...", 'digital-library' ),
-				'desc_tip'    => true,
-				'description' => esc_html__( 'Enter each author name on a new line.', 'digital-library' ),
-				'rows'        => 5
+		// Display upcoming.
+		$upcoming = get_post_meta( $thepostid, self::BOOK_UPCOMING, true );
+		filter_var( $upcoming, FILTER_VALIDATE_BOOLEAN );
+		woocommerce_wp_checkbox( array(
+			'id'          => self::BOOK_UPCOMING,
+			'label'       => __( 'Appear In Upcoming', 'digital-library' ),
+			'desc_tip'    => true,
+			'description' => esc_html__(
+				'Check if book should appear in the upcoming section.',
+				'digital-library'
 			)
-		);
+		) );
+
+		// Display authors.
+		woocommerce_wp_textarea_input( array(
+			'id'          => self::BOOK_AUTHORS,
+			'label'       => __( 'Book Authors', 'digital-library' ),
+			'placeholder' => __( "Peter Petrov\nDragan Draganov\n...", 'digital-library' ),
+			'desc_tip'    => true,
+			'description' => esc_html__( 'Enter each author name on a new line.', 'digital-library' ),
+			'rows'        => 5
+		) );
 
 		// Display subtitle.
-		woocommerce_wp_text_input(
-			array(
-				'id'    => self::BOOK_SUBTITLE,
-				'type'  => 'text',
-				'label' => __( 'Book Subtitle', 'digital-library' ),
-			)
-		);
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_SUBTITLE,
+			'type'  => 'text',
+			'label' => __( 'Book Subtitle', 'digital-library' ),
+		) );
 
 		// Display ISBN.
-		woocommerce_wp_text_input(
-			array(
-				'id'    => self::BOOK_ISBN,
-				'type'  => 'text',
-				'label' => __( 'Book ISBN', 'digital-library' ),
-			)
-		);
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_ISBN,
+			'type'  => 'text',
+			'label' => __( 'Book ISBN', 'digital-library' ),
+		) );
 
-		// Display PDF Preview.
+		// Display PDF excerpt.
+		$excerpt_id       = intval( get_post_meta( $thepostid, self::BOOK_EXCERPT, true ) );
+		$excerpt_filename = $excerpt_id !== 0 ? get_the_title( $excerpt_id ) : '';
+		?>
+        <p class="form-field dl <?php echo esc_attr( self::BOOK_EXCERPT ) ?>">
+            <label for="book_excerpt_id"><?php esc_attr_e( 'Book excerpt', 'digital-library' ) ?></label>
+            <input id="book_excerpt_select_button" type="button" class="button button-primary" style="margin-left: 0"
+                   value="<?php esc_attr_e( 'Upload a book excerpt', 'digital-library' ) ?>">
+            <input type="hidden" id="book_excerpt_id" name="<?php echo esc_attr( self::BOOK_EXCERPT ) ?>"
+                   value="<?php echo $excerpt_id ?>">
+            <i class="book-excerpt-indicator" style="margin-inline-start: 10px;"
+               id="book_excerpt_indicator">
+				<?php echo empty( $excerpt_filename ) ?
+					esc_attr__( '(No excerpt file selected.)', 'digital-library' )
+					: esc_html( $excerpt_filename ) ?>
+            </i>
+            <a class="delete" id="remote_book_excerpt_button"
+               title="<?php esc_attr_e( 'Remove book excerpt', 'digital-library' ) ?>">
+				<?php esc_html_e( 'Remove book excerpt', 'digital-library' ) ?>
+            </a>
+        </p>
+		<?php
+
+		// Display PDF preview.
 		$preview_id       = intval( get_post_meta( $thepostid, self::BOOK_PREVIEW, true ) );
 		$preview_filename = $preview_id !== 0 ? get_the_title( $preview_id ) : '';
 		?>
@@ -308,12 +354,77 @@ final class Digital_Library {
 					esc_attr__( '(No preview file selected.)', 'digital-library' )
 					: esc_html( $preview_filename ) ?>
             </i>
-            <a class="delete" title="<?php esc_attr_e( 'Remove book preview', 'digital-library' ) ?>"
-               id="remote_book_preview_button">
+            <a class="delete" id="remove_book_preview_button"
+               title="<?php esc_attr_e( 'Remove book preview', 'digital-library' ) ?>">
 				<?php esc_html_e( 'Remove book preview', 'digital-library' ) ?>
             </a>
         </p>
 		<?php
+
+		// Display book date public.
+		woocommerce_wp_text_input( array(
+			'id'                => 'book_date_public_datepicker',
+			'name'              => self::BOOK_DATE_PUBLIC,
+			'type'              => 'text',
+			'label'             => __( 'Book Date Public', 'digital-library' ),
+			'custom_attributes' => array( 'autocomplete' => 'off' ),
+			'desc_tip'          => true,
+			'value'             => get_post_meta( $thepostid, self::BOOK_DATE_PUBLIC, true ),
+			'description'       => esc_html__( 'The date from which the book preview becomes available.', 'digital-library' ),
+		) );
+
+		// Display book main category.
+		$product_category_terms = get_terms( 'product_cat' );
+		$product_categories     = array( '' => '' );
+		/** @var \WP_Term $term */
+		foreach ( $product_category_terms as $term ) {
+			$product_categories[ $term->term_id ] = $term->name;
+		}
+		woocommerce_wp_select( array(
+			'id'      => self::BOOK_MAIN_CATEGORY,
+			'label'   => __( 'Book Main Category', 'digital-library' ),
+			'options' => $product_categories,
+			'value'   => get_post_meta( $thepostid, self::BOOK_MAIN_CATEGORY, true )
+		) );
+
+		// Display copyright.
+		woocommerce_wp_textarea_input( array(
+			'id'          => self::BOOK_COPYRIGHT,
+			'type'        => 'text',
+			'placeholder' => __( "Publisher 1\nPublisher 2\n...", 'digital-library' ),
+			'label'       => __( 'Book Copyright', 'digital-library' ),
+			'desc_tip'    => true,
+			'description' => esc_html__( 'Enter each publisher on a new line.', 'digital-library' ),
+			'rows'        => 5,
+		) );
+
+		// Display book location.
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_LOCATION,
+			'type'  => 'text',
+			'label' => __( 'Book Location', 'digital-library' ),
+		) );
+
+		// Display book year.
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_YEAR,
+			'type'  => 'number',
+			'label' => __( 'Book Year', 'digital-library' ),
+		) );
+
+		// Display book pages.
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_PAGES,
+			'type'  => 'number',
+			'label' => __( 'Book Pages', 'digital-library' ),
+		) );
+
+		// Display book pages.
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_EDITION,
+			'type'  => 'text',
+			'label' => __( 'Book Edition', 'digital-library' ),
+		) );
 
 		echo '</div>';
 	}
@@ -324,38 +435,103 @@ final class Digital_Library {
 	 * @param $post_id int The ID of book.
 	 */
 	public function save_book_fields( int $post_id ) {
-		$title      = get_the_title( $post_id );
-		$authors    = &$_POST[ self::BOOK_AUTHORS ];
-		$subtitle   = &$_POST[ self::BOOK_SUBTITLE ];
-		$isbn       = &$_POST[ self::BOOK_ISBN ];
-		$preview_id = &$_POST[ self::BOOK_PREVIEW ];
+		$upcoming    = &$_POST[ self::BOOK_UPCOMING ];
+		$authors     = &$_POST[ self::BOOK_AUTHORS ];
+		$subtitle    = &$_POST[ self::BOOK_SUBTITLE ];
+		$isbn        = &$_POST[ self::BOOK_ISBN ];
+		$excerpt_id  = &$_POST[ self::BOOK_EXCERPT ];
+		$preview_id  = &$_POST[ self::BOOK_PREVIEW ];
+		$date_public = &$_POST[ self::BOOK_DATE_PUBLIC ];
+		$main_cat    = &$_POST[ self::BOOK_MAIN_CATEGORY ];
+		$copyright   = &$_POST[ self::BOOK_COPYRIGHT ];
+		$location    = &$_POST[ self::BOOK_LOCATION ];
+		$year        = &$_POST[ self::BOOK_YEAR ];
+		$pages       = &$_POST[ self::BOOK_PAGES ];
+		$edition     = &$_POST[ self::BOOK_EDITION ];
 
-		// Update book title (just for indexing purposes).
-		if ( ! empty( $title ) ) {
-			update_post_meta( $post_id, self::BOOK_TITLE,
-				wp_kses( get_the_title( $post_id ), array() ) );
-		}
+		$upcoming = filter_var( $upcoming, FILTER_VALIDATE_BOOLEAN );
+		update_post_meta( $post_id, self::BOOK_UPCOMING, $upcoming ? 'yes' : '' );
 
 		// Update book subtitle.
-		if ( ! empty( $subtitle ) ) {
+		if ( ! is_null( $subtitle ) ) {
 			update_post_meta( $post_id, self::BOOK_SUBTITLE, wp_kses( $subtitle, array() ) );
 		}
 
 		// Update book authors.
-		if ( ! empty( $authors ) ) {
+		if ( ! is_null( $authors ) ) {
 			update_post_meta( $post_id, self::BOOK_AUTHORS, wp_kses( $authors, array() ) );
 		}
 
-		// Update book isbn.
-		if ( ! empty( $isbn ) ) {
+		// Update book ISBN.
+		if ( ! is_null( $isbn ) ) {
 			update_post_meta( $post_id, self::BOOK_ISBN, wp_kses( $isbn, array() ) );
 		}
 
+		// Update book excerpt.
+		if ( ! is_null( $excerpt_id ) ) {
+			if ( 0 == ( $excerpt_id = intval( $excerpt_id ) )
+			     || 'attachment' !== get_post_type( $excerpt_id )
+			) {
+				$excerpt_id = '';
+			}
+			update_post_meta( $post_id, self::BOOK_EXCERPT, $excerpt_id );
+		}
+
 		// Update book preview.
-		if ( ! empty( $preview_id )
-		     && 0 != ( $preview_id = intval( $preview_id ) )
-		     && 'attachment' === get_post_type( $preview_id ) ) {
+		if ( ! is_null( $preview_id ) ) {
+			if ( 0 == ( $preview_id = intval( $preview_id ) )
+			     || 'attachment' !== get_post_type( $preview_id )
+			) {
+				$preview_id = '';
+			}
 			update_post_meta( $post_id, self::BOOK_PREVIEW, $preview_id );
+		}
+
+		// Update date public.
+		if ( ! is_null( $date_public ) ) {
+			$date_public = date( 'Y-m-d', strtotime( $date_public ) );
+			update_post_meta( $post_id, self::BOOK_DATE_PUBLIC, $date_public );
+		}
+
+		// Update main category.
+		if ( ! is_null( $main_cat ) ) {
+			$main_cat = intval( $main_cat );
+			$term     = get_term( $main_cat, 'product_cat' );
+			if ( empty( $term ) || is_wp_error( $term ) ) {
+				$main_cat = '';
+			}
+			update_post_meta( $post_id, self::BOOK_MAIN_CATEGORY, $main_cat );
+		}
+
+		// Update copyright.
+		if ( ! is_null( $copyright ) ) {
+			update_post_meta( $post_id, self::BOOK_COPYRIGHT, $copyright );
+		}
+
+		// Update year.
+		if ( ! is_null( $year ) ) {
+			if ( ! empty( $year ) ) {
+				$year = intval( $year );
+			}
+			update_post_meta( $post_id, self::BOOK_YEAR, $year );
+		}
+
+		// Update location.
+		if ( ! is_null( $location ) ) {
+			update_post_meta( $post_id, self::BOOK_LOCATION, $location );
+		}
+
+		// Update pages.
+		if ( ! is_null( $pages ) ) {
+			if ( ! empty( $page ) ) {
+				$pages = intval( $page );
+			}
+			update_post_meta( $post_id, self::BOOK_PAGES, $pages );
+		}
+
+		// Update edition.
+		if ( ! is_null( $edition ) ) {
+			update_post_meta( $post_id, self::BOOK_EDITION, $edition );
 		}
 
 	}
