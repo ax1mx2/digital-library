@@ -710,7 +710,7 @@ final class Digital_Library {
 					<?php endif; ?>
 	                    <?php echo empty( $pages ) ? ''
 		                    : sprintf(
-			                    __( '%s p.', 'digital-library' ),
+			                    _x( '%s p.', 'Number of pages.', 'digital-library' ),
 			                    $pages
 		                    ) ?>
                     </span>
@@ -718,9 +718,7 @@ final class Digital_Library {
 			<?php endif; ?>
 	        <?php if ( ! empty( $edition ) ): ?>
                 <p>
-                    <em>
-	                    <?php echo esc_html( $edition ) ?>
-                    </em>
+                    <em>(<?php echo esc_html( $edition ) ?>)</em>
                 </p>
 	        <?php endif; ?>
         </div>

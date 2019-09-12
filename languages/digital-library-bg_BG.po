@@ -8,8 +8,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-09-08T18:54:19+00:00\n"
-"PO-Revision-Date: 2019-09-08 18:54+0000\n"
+"POT-Creation-Date: 2019-09-12T11:44:39+00:00\n"
+"PO-Revision-Date: 2019-09-12 11:50+0000\n"
 "X-Generator: Loco https://localise.biz/\n"
 "X-Domain: digital-library\n"
 "Last-Translator: zografadmin <kokudi@gmail.com>\n"
@@ -33,68 +33,94 @@ msgstr ""
 msgid "A. Milanov"
 msgstr "А. Миланов"
 
-#: includes/class-book-preview-page.php:115
+#: includes/class-book-preview-page.php:141
+msgid "Open the book excerpt"
+msgstr "Прочитане на откъс"
+
+#: includes/class-book-preview-page.php:161
 msgid "Open the book preview"
 msgstr "Преглед на книгата"
 
-#: includes/class-digital-library.php:170
-#: includes/class-digital-library.php:308
+#: includes/class-digital-library.php:191
+#: includes/class-digital-library.php:348
+msgid "(No excerpt file selected.)"
+msgstr "(Не е избран файл с откъс от книга.)"
+
+#: includes/class-digital-library.php:192
+msgid "Please select a book excerpt"
+msgstr "Моля изберете откъс от книга"
+
+#: includes/class-digital-library.php:193
+msgid "Use this book excerpt"
+msgstr "Използване на този откъс"
+
+#: includes/class-digital-library.php:194
+#: includes/class-digital-library.php:371
 msgid "(No preview file selected.)"
 msgstr "(Не е избран файл.)"
 
-#: includes/class-digital-library.php:171
+#: includes/class-digital-library.php:195
 msgid "Please select a book preview"
 msgstr "Моля изберете файл, който да послужи за преглед на книгата"
 
-#: includes/class-digital-library.php:172
+#: includes/class-digital-library.php:196
 msgid "Use this book preview"
 msgstr "Използвай тази книга"
 
-#: includes/class-digital-library.php:201
+#: includes/class-digital-library.php:227
 msgid "Loading..."
 msgstr "Зареждане..."
 
-#: includes/class-digital-library.php:202
+#: includes/class-digital-library.php:228
 msgid "No books available."
 msgstr "Не са намерени книги."
 
-#: includes/class-digital-library.php:203
+#: includes/class-digital-library.php:229
 msgid "Search"
 msgstr "Търсене"
 
-#: includes/class-digital-library.php:204
+#: includes/class-digital-library.php:230
 msgid "Title..."
 msgstr "Заглавие..."
 
-#: includes/class-digital-library.php:205
+#: includes/class-digital-library.php:231
 msgid "Authors..."
 msgstr "Автори..."
 
-#: includes/class-digital-library.php:206
+#: includes/class-digital-library.php:232
 msgid "Apply"
 msgstr "Приложи"
 
-#: includes/class-digital-library.php:207
+#: includes/class-digital-library.php:233
 msgid "Categories"
 msgstr "Категории"
 
-#: includes/class-digital-library.php:208
+#: includes/class-digital-library.php:234
 msgid "Books"
 msgstr "Книги"
 
-#: includes/class-digital-library.php:209
+#: includes/class-digital-library.php:235
 msgid "Loading more books..."
 msgstr "Зареждане на повече книги..."
 
-#: includes/class-digital-library.php:263
+#: includes/class-digital-library.php:296
 msgid "Book Details"
 msgstr "Детайли за книгата"
 
-#: includes/class-digital-library.php:269
+#: includes/class-digital-library.php:303
+msgid "Appear In Upcoming"
+msgstr "Показване само в предстоящи"
+
+#: includes/class-digital-library.php:305
+msgid "Check if book should appear in the upcoming section."
+msgstr ""
+"Маркирайте само ако книгата трябва да се показва в секцията за предстоящи."
+
+#: includes/class-digital-library.php:314
 msgid "Book Authors"
 msgstr "Автори на книгата"
 
-#: includes/class-digital-library.php:270
+#: includes/class-digital-library.php:315
 msgid ""
 "Peter Petrov\n"
 "Dragan Draganov\n"
@@ -104,30 +130,111 @@ msgstr ""
 "Име на автор 2\n"
 "..."
 
-#: includes/class-digital-library.php:272
+#: includes/class-digital-library.php:317
 msgid "Enter each author name on a new line."
 msgstr "Въведете имената на всеки автор на нов ред."
 
-#: includes/class-digital-library.php:282
+#: includes/class-digital-library.php:325
 msgid "Book Subtitle"
 msgstr "Подзаглавие на книга"
 
-#: includes/class-digital-library.php:291
+#: includes/class-digital-library.php:332
 msgid "Book ISBN"
 msgstr "ISBN на книга"
 
-#: includes/class-digital-library.php:300
+#: includes/class-digital-library.php:340
+msgid "Book excerpt"
+msgstr "Откъс на книга"
+
+#: includes/class-digital-library.php:342
+msgid "Upload a book excerpt"
+msgstr "Качване на откъс"
+
+#: includes/class-digital-library.php:352
+#: includes/class-digital-library.php:353
+msgid "Remove book excerpt"
+msgstr "Премахване на откъс"
+
+#: includes/class-digital-library.php:363
 msgid "Book preview"
 msgstr "Преглед на книга"
 
-#: includes/class-digital-library.php:302
+#: includes/class-digital-library.php:365
 msgid "Upload a book preview"
 msgstr "Качване на преглед на книга"
 
-#: includes/class-digital-library.php:311
-#: includes/class-digital-library.php:313
+#: includes/class-digital-library.php:375
+#: includes/class-digital-library.php:376
 msgid "Remove book preview"
 msgstr "Премахване на преглед на книга"
+
+#: includes/class-digital-library.php:386
+msgid "Book Date Public"
+msgstr "Дата публичност на съдържанието"
+
+#: includes/class-digital-library.php:390
+msgid "The date from which the book preview becomes available."
+msgstr ""
+"Датата, от която цялото съдържание на книгата става достъпно за четене."
+
+#: includes/class-digital-library.php:396
+msgid "Add Book to Category"
+msgstr "Добаване на книга към категория"
+
+#: includes/class-digital-library.php:399
+msgid "Add to category after the public date."
+msgstr "Книгата се добавя, след като бъде публикувано нейто пълно съдържание."
+
+#: includes/class-digital-library.php:406
+msgid "Book Main Category"
+msgstr "Основна категория"
+
+#: includes/class-digital-library.php:415
+msgid ""
+"Publisher 1\n"
+"Publisher 2\n"
+"..."
+msgstr ""
+"Издател 1\n"
+"Издател 2\n"
+"..."
+
+#: includes/class-digital-library.php:416
+msgid "Book Copyright"
+msgstr "Авторски права на книга"
+
+#: includes/class-digital-library.php:418
+msgid "Enter each publisher on a new line."
+msgstr "Въведете всеки издател на нов ред."
+
+#: includes/class-digital-library.php:426
+msgid "Book Location"
+msgstr "Място на издаване"
+
+#: includes/class-digital-library.php:433
+msgid "Book Year"
+msgstr "Година на издаване"
+
+#: includes/class-digital-library.php:440
+msgid "Book Pages"
+msgstr "Брой страници"
+
+#: includes/class-digital-library.php:447
+msgid "Book Edition"
+msgstr "Издание на книга"
+
+#: includes/class-digital-library.php:680
+msgid "Print ISBN:"
+msgstr "Печатен ISBN:"
+
+#: includes/class-digital-library.php:690
+msgid "Copyright Information"
+msgstr "Авторски права"
+
+#: includes/class-digital-library.php:713
+msgctxt "Number of pages."
+msgid "%s p."
+msgstr "%s с."
 
 #: includes/class-main-options-page.php:71
 #: includes/class-main-options-page.php:72
