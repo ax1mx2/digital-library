@@ -653,6 +653,7 @@ final class Digital_Library {
 		$location  = get_post_meta( $id, self::BOOK_LOCATION, true );
 		$year      = get_post_meta( $id, self::BOOK_YEAR, true );
 		$pages     = get_post_meta( $id, self::BOOK_PAGES, true );
+		$edition   = get_post_meta( $id, self::BOOK_EDITION, true );
 
 		ob_start();
 		?>
@@ -711,6 +712,13 @@ final class Digital_Library {
                     </span>
                 </p>
 			<?php endif; ?>
+	        <?php if ( ! empty( $edition ) ): ?>
+                <p>
+                    <em>
+				        <?php echo esc_html( $edition ) ?>
+                    </em>
+                </p>
+	        <?php endif; ?>
         </div>
 		<?php
 		return $excerpt . ob_get_clean();
