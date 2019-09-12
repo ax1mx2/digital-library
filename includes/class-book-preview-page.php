@@ -32,7 +32,7 @@ class Book_Preview_Page {
 
 
 		// Add buttons on product page.
-		add_filter( 'woocommerce_short_description', array( $this, 'add_buttons' ) );
+		add_filter( 'woocommerce_short_description', array( $this, 'add_product_buttons' ) );
 	}
 
 	/**
@@ -108,7 +108,10 @@ class Book_Preview_Page {
 	 * @return mixed
 	 * @throws \Exception
 	 */
-	public function add_buttons( string $excerpt ) {
+	public function add_product_buttons( string $excerpt ) {
+		if ( ! is_product() ) {
+			return $excerpt;
+		}
 		global $product;
 
 		ob_start();

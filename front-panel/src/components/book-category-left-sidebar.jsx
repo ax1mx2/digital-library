@@ -39,11 +39,14 @@ export default class BookCategoryLeftSidebar extends Component {
 
   render(props, state, context) {
     const {categories} = props;
+    console.log(categories);
     const categoryListElems =
         Array.isArray(categories) && categories.length > 0
             ? (
                 <div>
                   {categories.map((el) => <BookCategoryListElem name={el.name}
+                                                                link={el.link}
+                                                                thumbnailSrc={el.thumbnailSrc}
                                                                 childCategories={el.childCategories}/>)}
                 </div>
             ) : null;

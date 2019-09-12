@@ -11,5 +11,19 @@
 
   > div {
     width: 290px;
+
+    img {
+      transition: all .5s;
+
+      &:hover {
+        filter: brightness(1.15) contrast(1.15);
+      }
+    }
+
+    .img {
+      height: 50px;
+      width: 50px;
+    }
+
   }
 }

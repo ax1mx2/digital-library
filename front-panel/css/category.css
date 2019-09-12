@@ -1,0 +1,11 @@
+.category-descriptor {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: row;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.category-descriptor .term-description {
+    font-size: 1.5em;
+}

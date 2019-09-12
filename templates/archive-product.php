@@ -44,6 +44,7 @@ function dl_get_product_categories( $parent_category_id = null ) {
 		$mapped[] = array(
 			'name'            => $category->name,
 			'link'            => get_term_link( $category->term_id ),
+			'thumbnailSrc'    => dl_get_category_thumbnail_src( $category->term_id, array( 50, 50 ) ),
 			'childCategories' => dl_get_product_categories( $category->term_id )
 		);
 	}
@@ -51,32 +52,41 @@ function dl_get_product_categories( $parent_category_id = null ) {
 	return $mapped;
 }
 
-$categories = dl_get_product_categories();
+function dl_get_category_thumbnail_src( int $category_id, $size = 'thumbnail' ) {
+	$thumbnail_id = get_term_meta( $category_id, 'thumbnail_id', true );
+
+	return empty( $thumbnail_id ) ? '' :
+		wp_get_attachment_image_src( $thumbnail_id, $size )[0];
+}
+
+$categories             = dl_get_product_categories( $category_id );
+$category_view_app_data = array(
+	'category'   => $category_id,
+	'categories' => $categories
+);
+
+$category_thumb_id = get_term_meta( $category_id, 'thumbnail_id', true );
 ?>
     <header class="woocommerce-products-header">
-		<?php if ( apply_filters( 'woocommerce_show_page_title', true ) ) : ?>
-            <h1 class="woocommerce-products-header__title page-title"><?php woocommerce_page_title(); ?></h1>
-		<?php endif; ?>
+        <div class="category-descriptor">
+		    <?php
+		    if ( ! empty( $category_thumb_id ) ) :
+			    echo wp_get_attachment_image( $category_thumb_id, array( 100, 100 ), false );
+		    endif;
 
-		<?php
-		/**
-		 * Hook: woocommerce_archive_description.
-		 *
-		 * @hooked woocommerce_taxonomy_archive_description - 10
-		 * @hooked woocommerce_product_archive_description - 10
-		 */
-		do_action( 'woocommerce_archive_description' );
-		?>
+		    /**
+		     * Hook: woocommerce_archive_description.
+		     *
+		     * @hooked woocommerce_taxonomy_archive_description - 10
+		     * @hooked woocommerce_product_archive_description - 10
+		     */
+		    do_action( 'woocommerce_archive_description' );
+		    ?>
+        </div>
     </header>
 
     <div class="book-category-view-app" style="padding: 10px;">
-        <script type="text/props">
-            <?php echo wp_json_encode(
-				array( 'category' => $category_id, 'categories' => $categories )
-			) ?>
-
-
-        </script>
+        <script type="text/props"><?php echo wp_json_encode( $category_view_app_data ) ?></script>
     </div>
 
 <?php

@@ -637,6 +637,10 @@ final class Digital_Library {
 	 * @return string
 	 */
 	public function add_bibliographical_info_box( string $excerpt ) {
+		if ( ! is_product() ) {
+			return $excerpt;
+		}
+
 		global $product;
 		$id = $product->get_id();
 
@@ -715,7 +719,7 @@ final class Digital_Library {
 	        <?php if ( ! empty( $edition ) ): ?>
                 <p>
                     <em>
-				        <?php echo esc_html( $edition ) ?>
+	                    <?php echo esc_html( $edition ) ?>
                     </em>
                 </p>
 	        <?php endif; ?>
@@ -729,8 +733,17 @@ final class Digital_Library {
 	 */
 	public function add_front_panel_styles() {
 		if ( is_product() ) {
-			wp_enqueue_style( 'dl_fp_prod_style',
+			wp_enqueue_style(
+				'dl_fp_prod',
 				plugin_dir_url( DL_PLUGIN_FILE ) . 'front-panel/css/product.css',
+				array(),
+				'0.0.1'
+			);
+		}
+		if ( is_product_category() ) {
+			wp_enqueue_style(
+				'dl_fp_prod_cat',
+				plugin_dir_url( DL_PLUGIN_FILE ) . 'front-panel/css/category.css',
 				array(),
 				'0.0.1'
 			);
