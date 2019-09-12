@@ -11,7 +11,8 @@ defined( 'ABSPATH' ) || exit();
  */
 class Book_Preview_Page {
 
-	public const ENDPOINT = 'book-preview';
+	public const EXCERPT_ENDPOINT = 'book-excerpt';
+	public const PREVIEW_ENDPOINT = 'book-preview';
 
 	/**
 	 * @var Book_Preview_Page The instance of the book preview page.
@@ -30,8 +31,8 @@ class Book_Preview_Page {
 		add_action( 'template_redirect', array( $this, 'handle_redirect' ) );
 
 
-		// Add button on product page.
-		add_filter( 'woocommerce_short_description', array( $this, 'add_preview_button' ) );
+		// Add buttons on product page.
+		add_filter( 'woocommerce_short_description', array( $this, 'add_buttons' ) );
 	}
 
 	/**
@@ -70,7 +71,8 @@ class Book_Preview_Page {
 	 * Method handles adding the rewrite endpoint.
 	 */
 	public function add_endpoint() {
-		add_rewrite_endpoint( self::ENDPOINT, EP_PERMALINK );
+		add_rewrite_endpoint( self::EXCERPT_ENDPOINT, EP_PERMALINK );
+		add_rewrite_endpoint( self::PREVIEW_ENDPOINT, EP_PERMALINK );
 		flush_rewrite_rules();
 	}
 
@@ -79,7 +81,7 @@ class Book_Preview_Page {
 	 */
 	public function handle_redirect() {
 		global $wp_query, $post;
-		if ( ! is_singular( 'product' ) || ! isset( $wp_query->query_vars[ self::ENDPOINT ] ) ) {
+		if ( ! is_singular( 'product' ) || ! isset( $wp_query->query_vars[ self::PREVIEW_ENDPOINT ] ) ) {
 			return;
 		}
 		$preview_id = intval( get_post_meta( $post->ID, Digital_Library::BOOK_PREVIEW, true ) );
@@ -98,29 +100,53 @@ class Book_Preview_Page {
 	}
 
 	/**
-	 * Method handles adding the book preview button, if the preview is available.
+	 * Method handles adding the book buttons,
+	 * if the excerpt or preview is available.
 	 *
 	 * @param string $excerpt
 	 *
 	 * @return mixed
+	 * @throws \Exception
 	 */
-	public function add_preview_button( string $excerpt ) {
+	public function add_buttons( string $excerpt ) {
 		global $product;
-		$preview_id = intval( get_post_meta( $product->get_id(), Digital_Library::BOOK_PREVIEW, true ) );
-		if ( 'attachment' !== get_post_type( $preview_id )
-		     || 'application/pdf' !== strtolower( get_post_mime_type( $preview_id ) ) ) {
-			return $excerpt;
+
+		ob_start();
+		$excerpt_id = intval( get_post_meta( $product->get_id(), Digital_Library::BOOK_EXCERPT, true ) );
+		if ( 'attachment' === get_post_type( $excerpt_id )
+		     && 'application/pdf' === strtolower( get_post_mime_type( $excerpt_id ) )
+		) {
+			$excerpt_button = __( 'Open the book excerpt', 'digital-library' );
+			$url            = rtrim( get_permalink( $product->get_id() ), '/' ) . '/' . self::EXCERPT_ENDPOINT;
+			if ( shortcode_exists( 'fancy_link' ) ) {
+				echo do_shortcode(
+					sprintf( '[fancy_link link="%1$s" title="%2$s" style="5"]',
+						esc_attr( $url ), esc_html( $excerpt_button ) ) );
+			} else {
+				printf( '<a role="button" class="button" href="%1$s">%2$s</a>',
+					esc_attr( $url ), esc_html( $excerpt_button ) );
+			}
 		}
 
-		$title = __( 'Open the book preview', 'digital-library' );
-		$url   = rtrim( get_permalink( $product->get_id() ), '/' ) . '/' . self::ENDPOINT;
-		ob_start();
-		if ( shortcode_exists( 'fancy_link' ) ) {
-			echo do_shortcode( sprintf( '[fancy_link link="%1$s" title="%2$s" style="5"]',
-				esc_attr( $url ), esc_html( $title ) ) );
-		} else {
-			printf( '<a role="button" class="button" href="%1$s">%2$s</a>',
-				esc_attr( $url ), esc_html( $title ) );
+		$date_public = get_post_meta( $product->get_id(), Digital_Library::BOOK_DATE_PUBLIC, true );
+		$date_public = new \DateTime( $date_public );
+		$now         = new \DateTime();
+		if ( $date_public <= $now ) {
+			$preview_id = intval( get_post_meta( $product->get_id(), Digital_Library::BOOK_PREVIEW, true ) );
+			if ( 'attachment' === get_post_type( $preview_id )
+			     && 'application/pdf' === strtolower( get_post_mime_type( $preview_id ) )
+			) {
+				$preview_button = __( 'Open the book preview', 'digital-library' );
+				$url            = rtrim( get_permalink( $product->get_id() ), '/' ) . '/' . self::PREVIEW_ENDPOINT;
+				if ( shortcode_exists( 'fancy_link' ) ) {
+					echo do_shortcode(
+						sprintf( '[fancy_link link="%1$s" title="%2$s" style="5"]',
+							esc_attr( $url ), esc_html( $preview_button ) ) );
+				} else {
+					printf( '<a role="button" class="button" href="%1$s">%2$s</a>',
+						esc_attr( $url ), esc_html( $preview_button ) );
+				}
+			}
 		}
 
 		return $excerpt . ob_get_clean();

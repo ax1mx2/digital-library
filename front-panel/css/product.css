@@ -1,0 +1,13 @@
+.bib-info {
+    border: 1px solid rgb(154, 151, 136);
+    margin: 10px;
+    padding: 15px;
+}
+
+.bib-info .bib-label {
+    font-weight: bold;
+}
+
+.bib-info .bib-cpright span {
+    margin-left: 1em;
+}

@@ -23,6 +23,7 @@ final class Digital_Library {
 	public const BOOK_EXCERPT = 'dl_book_excerpt_media_id';
 	public const BOOK_PREVIEW = 'dl_book_preview_media_id';
 	public const BOOK_DATE_PUBLIC = 'dl_book_date_public';
+	public const BOOK_ADD_TO_CATEGORY = 'dl_book_add_to_category';
 	public const BOOK_MAIN_CATEGORY = 'dl_book_main_category';
 	public const BOOK_COPYRIGHT = 'dl_book_copyright';
 	public const BOOK_LOCATION = 'dl_book_location';
@@ -92,6 +93,15 @@ final class Digital_Library {
 			array( $this, 'save_book_fields' )
 		);
 		add_action( 'rest_api_init', array( $this, 'register_rest_controllers' ) );
+
+		// Customize Book View
+		add_filter( 'woocommerce_short_description',
+			array( $this, 'add_bibliographical_info_box' ), 50, 1 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'add_front_panel_styles' ) );
+
+		// Add cron hooks.
+		add_action( 'add_product_to_product_cat',
+			array( $this, 'add_product_to_product_cat' ), 10, 1 );
 	}
 
 	/**
@@ -275,6 +285,13 @@ final class Digital_Library {
 	public function add_book_fields() {
 		global $thepostid;
 
+		$product_category_terms = get_terms( 'product_cat' );
+		$product_categories     = array( '' => '' );
+		/** @var \WP_Term $term */
+		foreach ( $product_category_terms as $term ) {
+			$product_categories[ $term->term_id ] = $term->name;
+		}
+
 		echo '<div class="options_group dl-woocommerce-book-field-group">';
 		echo '<div><h2>' . esc_attr( __( 'Book Details', 'digital-library' ) ) . '</h2></div>';
 
@@ -368,18 +385,22 @@ final class Digital_Library {
 			'type'              => 'text',
 			'label'             => __( 'Book Date Public', 'digital-library' ),
 			'custom_attributes' => array( 'autocomplete' => 'off' ),
-			'desc_tip'          => true,
 			'value'             => get_post_meta( $thepostid, self::BOOK_DATE_PUBLIC, true ),
+			'desc_tip'          => true,
 			'description'       => esc_html__( 'The date from which the book preview becomes available.', 'digital-library' ),
 		) );
 
+		// Display book add to category.
+		woocommerce_wp_select( array(
+			'id'          => self::BOOK_ADD_TO_CATEGORY,
+			'label'       => __( 'Add Book to Category', 'digital-library' ),
+			'options'     => $product_categories,
+			'desc_tip'    => true,
+			'description' => esc_html__( 'Add to category after the public date.', 'digital-library' ),
+			'value'       => get_post_meta( $thepostid, self::BOOK_ADD_TO_CATEGORY, true )
+		) );
+
 		// Display book main category.
-		$product_category_terms = get_terms( 'product_cat' );
-		$product_categories     = array( '' => '' );
-		/** @var \WP_Term $term */
-		foreach ( $product_category_terms as $term ) {
-			$product_categories[ $term->term_id ] = $term->name;
-		}
 		woocommerce_wp_select( array(
 			'id'      => self::BOOK_MAIN_CATEGORY,
 			'label'   => __( 'Book Main Category', 'digital-library' ),
@@ -442,6 +463,7 @@ final class Digital_Library {
 		$excerpt_id  = &$_POST[ self::BOOK_EXCERPT ];
 		$preview_id  = &$_POST[ self::BOOK_PREVIEW ];
 		$date_public = &$_POST[ self::BOOK_DATE_PUBLIC ];
+		$add_to_cat  = &$_POST[ self::BOOK_ADD_TO_CATEGORY ];
 		$main_cat    = &$_POST[ self::BOOK_MAIN_CATEGORY ];
 		$copyright   = &$_POST[ self::BOOK_COPYRIGHT ];
 		$location    = &$_POST[ self::BOOK_LOCATION ];
@@ -493,6 +515,39 @@ final class Digital_Library {
 			update_post_meta( $post_id, self::BOOK_DATE_PUBLIC, $date_public );
 		}
 
+		// Update add to category.
+		if ( ! is_null( $add_to_cat ) ) {
+			$add_to_cat = intval( $add_to_cat );
+			$term       = get_term( $add_to_cat, 'product_cat' );
+			if ( empty( $term ) || is_wp_error( $term ) ) {
+				$add_to_cat = '';
+			}
+			update_post_meta( $post_id, self::BOOK_ADD_TO_CATEGORY, $add_to_cat );
+			if ( ! empty( $add_to_cat ) && ! has_term( $term, 'product_cat', $post_id ) ) {
+				// Check if event is scheduled an remove it.
+				$add_to_cat_timestamp = wp_next_scheduled(
+					'add_product_to_product_cat', array( $post_id ) );
+				if ( false !== $add_to_cat_timestamp ) {
+					wp_unschedule_event(
+						$add_to_cat_timestamp,
+						'add_product_to_product_cat',
+						array( $post_id )
+					);
+				}
+
+				// Schedule the new event.
+				if ( isset( $date_public )
+				     && ! empty( $execution_date = strtotime( $date_public ) )
+				) {
+					wp_schedule_single_event(
+						$execution_date,
+						'add_product_to_product_cat',
+						array( $post_id )
+					);
+				}
+			}
+		}
+
 		// Update main category.
 		if ( ! is_null( $main_cat ) ) {
 			$main_cat = intval( $main_cat );
@@ -501,6 +556,9 @@ final class Digital_Library {
 				$main_cat = '';
 			}
 			update_post_meta( $post_id, self::BOOK_MAIN_CATEGORY, $main_cat );
+			if ( ! empty( $main_cat ) && ! has_term( $term, 'product_cat', $post_id ) ) {
+				wp_set_post_categories( $post_id, array( $main_cat ), true );
+			}
 		}
 
 		// Update copyright.
@@ -544,4 +602,130 @@ final class Digital_Library {
 		$book_search_controller->register_routes();
 	}
 
+	/**
+	 * Method handles adding the product to a new product category.
+	 * (To be used in events)
+	 *
+	 * @param int $product_id Specifies the ID of the product.
+	 */
+	public function add_product_to_product_cat( int $product_id ) {
+		if ( 'product' !== get_post_type( $product_id ) ) {
+			return;
+		}
+
+		$new_category_id = get_post_meta(
+			$product_id, self::BOOK_ADD_TO_CATEGORY, true );
+
+		$new_category = get_term( $new_category_id, 'product_cat' );
+		if ( empty( $new_category ) || is_wp_error( $new_category ) ) {
+			return;
+		}
+
+		wp_set_object_terms(
+			$product_id,
+			array( $new_category->term_id ),
+			'product_cat',
+			true
+		);
+	}
+
+	/**
+	 * Method handles adding bibliographical info box on the product page.
+	 *
+	 * @param string $excerpt
+	 *
+	 * @return string
+	 */
+	public function add_bibliographical_info_box( string $excerpt ) {
+		global $product;
+		$id = $product->get_id();
+
+		$main_category_id = get_post_meta( $id, self::BOOK_MAIN_CATEGORY, true );
+		if ( ! empty( $main_category_id ) ) {
+			$main_category = get_term( $main_category_id, 'product_cat' );
+			if ( is_wp_error( $main_category ) ) {
+				$main_category = null;
+			}
+		}
+		$isbn      = get_post_meta( $id, self::BOOK_ISBN, true );
+		$copyright = get_post_meta( $id, self::BOOK_COPYRIGHT, true );
+		$copyright = preg_split( '/\r\n|\n|\r/', $copyright );
+		$location  = get_post_meta( $id, self::BOOK_LOCATION, true );
+		$year      = get_post_meta( $id, self::BOOK_YEAR, true );
+		$pages     = get_post_meta( $id, self::BOOK_PAGES, true );
+
+		ob_start();
+		?>
+        <div class="bib-info">
+			<?php if ( ! empty( $main_category ) ): ?>
+                <p>
+                    <span class="bib-label">
+                        <?php esc_html_e( 'Main category:', 'digtial-library' ) ?>
+                    </span>
+                    <span class="bib-value">
+                        <a href="<?php echo esc_url( get_term_link( $main_category ) ) ?>">
+                        <?php echo esc_html( $main_category->name ) ?>
+                        </a>
+                    </span>
+                </p>
+			<?php endif; ?>
+			<?php if ( ! empty( $isbn ) ): ?>
+                <p>
+                    <span class="bib-label">
+                        <?php esc_html_e( 'Print ISBN:', 'digital-library' ) ?>
+                    </span>
+                    <span class="bib-value">
+                        <?php echo esc_html( $isbn ) ?>
+                    </span>
+                </p>
+			<?php endif; ?>
+			<?php if ( ! empty( $copyright ) ): ?>
+                <p>
+                    <span class="bib-label">
+                        <?php esc_html_e( 'Copyright Information', 'digital-library' ) ?>
+                    </span>
+                    <span class="bib-cpright">
+					<?php foreach ( $copyright as $copyright_line ): ?>
+                        <br>
+                        <span class="bib-value">&copy;<?php echo esc_html( $copyright_line ) ?></span>
+					<?php endforeach; ?>
+                    </span>
+                </p>
+			<?php endif; ?>
+			<?php if ( ! empty( $location ) || ! empty( $year ) || ! empty( $pages ) ): ?>
+                <p>
+                    <span class="bib-value">
+					<?php if ( ! empty( $location ) || ! empty( $year ) ): ?>
+                        <strong>
+							<?php echo esc_html(
+								implode( ', ', array_filter( array( $location, $year ) ) )
+								. ( empty( $pages ) ? '' : ',' )
+							) ?>
+                        </strong>
+					<?php endif; ?>
+	                    <?php echo empty( $pages ) ? ''
+		                    : sprintf(
+			                    __( '%s p.', 'digital-library' ),
+			                    $pages
+		                    ) ?>
+                    </span>
+                </p>
+			<?php endif; ?>
+        </div>
+		<?php
+		return $excerpt . ob_get_clean();
+	}
+
+	/**
+	 * Method handles adding the front panel styles.
+	 */
+	public function add_front_panel_styles() {
+		if ( is_product() ) {
+			wp_enqueue_style( 'dl_fp_prod_style',
+				plugin_dir_url( DL_PLUGIN_FILE ) . 'front-panel/css/product.css',
+				array(),
+				'0.0.1'
+			);
+		}
+	}
 }
