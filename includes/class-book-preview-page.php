@@ -81,17 +81,36 @@ class Book_Preview_Page {
 	 */
 	public function handle_redirect() {
 		global $wp_query, $post;
-		if ( ! is_singular( 'product' ) || ! isset( $wp_query->query_vars[ self::PREVIEW_ENDPOINT ] ) ) {
+		$is_excerpt = isset( $wp_query->query_vars[ self::EXCERPT_ENDPOINT ] );
+		$is_preview = isset( $wp_query->query_vars[ self::PREVIEW_ENDPOINT ] );
+		if ( ! is_singular( 'product' ) ||
+		     ( ! $is_excerpt && ! $is_preview )
+		) {
 			return;
 		}
-		$preview_id = intval( get_post_meta( $post->ID, Digital_Library::BOOK_PREVIEW, true ) );
-		if ( 'attachment' !== get_post_type( $preview_id )
-		     || 'application/pdf' !== strtolower( get_post_mime_type( $preview_id ) ) ) {
-			wp_redirect( get_permalink( $post->ID ), 302, 'Digital Library' );
+
+		if ( $is_excerpt ) {
+			$excerpt_id = intval( get_post_meta( $post->ID, Digital_Library::BOOK_EXCERPT, true ) );
+			if ( 'attachment' !== get_post_type( $excerpt_id )
+			     || 'application/pdf' !== strtolower( get_post_mime_type( $excerpt_id ) ) ) {
+				wp_redirect( get_permalink( $post->ID ), 302, 'Digital Library' );
+			}
+			$file_id = $excerpt_id;
+		} elseif ( $is_preview ) {
+			$preview_id            = intval( get_post_meta( $post->ID, Digital_Library::BOOK_PREVIEW, true ) );
+			$date_public           = get_post_meta( $post->ID, Digital_Library::BOOK_DATE_PUBLIC, true );
+			$date_public_timestamp = strtotime( $date_public );
+			if ( ( ! empty( $date_public ) && time() < $date_public_timestamp )
+			     || 'attachment' !== get_post_type( $preview_id )
+			     || 'application/pdf' !== strtolower( get_post_mime_type( $preview_id ) )
+			) {
+				wp_redirect( get_permalink( $post->ID ), 302, 'Digital Library' );
+			}
+			$file_id = $preview_id;
 		}
 
 		/** @noinspection PhpIncludeInspection */
-		$GLOBALS['preview_url'] = wp_get_attachment_url( $preview_id );
+		$GLOBALS['preview_url'] = wp_get_attachment_url( $file_id );
 		ob_start();
 		get_header();
 		include Digital_Library::dir( 'templates/book-preview.php' );
