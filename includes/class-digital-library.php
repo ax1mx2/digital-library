@@ -95,7 +95,7 @@ final class Digital_Library {
 		add_action( 'rest_api_init', array( $this, 'register_rest_controllers' ) );
 
 		// Customize Book View
-		add_filter( 'woocommerce_short_description',
+		add_action( 'woocommerce_before_single_product_summary',
 			array( $this, 'add_bibliographical_info_box' ), 50, 1 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_front_panel_styles' ) );
 
@@ -634,11 +634,10 @@ final class Digital_Library {
 	 *
 	 * @param string $excerpt
 	 *
-	 * @return string
 	 */
 	public function add_bibliographical_info_box( string $excerpt ) {
 		if ( ! is_product() ) {
-			return $excerpt;
+			return;
 		}
 
 		global $product;
@@ -654,6 +653,9 @@ final class Digital_Library {
 		$isbn      = get_post_meta( $id, self::BOOK_ISBN, true );
 		$copyright = get_post_meta( $id, self::BOOK_COPYRIGHT, true );
 		$copyright = preg_split( '/\r\n|\n|\r/', $copyright );
+		$copyright = array_filter( $copyright, function ( $c ) {
+			return ! empty( $c );
+		} );
 		$location  = get_post_meta( $id, self::BOOK_LOCATION, true );
 		$year      = get_post_meta( $id, self::BOOK_YEAR, true );
 		$pages     = get_post_meta( $id, self::BOOK_PAGES, true );
@@ -661,6 +663,7 @@ final class Digital_Library {
 
 		ob_start();
 		?>
+        <div style="clear: both;"></div>
         <div class="bib-info">
 			<?php if ( ! empty( $main_category ) ): ?>
                 <p>
@@ -692,7 +695,9 @@ final class Digital_Library {
                     <span class="bib-cpright">
 					<?php foreach ( $copyright as $copyright_line ): ?>
                         <br>
-                        <span class="bib-value">&copy;<?php echo esc_html( $copyright_line ) ?></span>
+                        <span class="bib-value">
+                            &copy;&nbsp;<?php echo esc_html( $copyright_line ) ?>
+                        </span>
 					<?php endforeach; ?>
                     </span>
                 </p>
@@ -723,7 +728,7 @@ final class Digital_Library {
 	        <?php endif; ?>
         </div>
 		<?php
-		return $excerpt . ob_get_clean();
+		echo ob_get_clean();
 	}
 
 	/**

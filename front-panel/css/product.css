@@ -1,6 +1,6 @@
 .bib-info {
     border: 1px solid rgb(154, 151, 136);
-    margin: 10px;
+    margin-top: 10px;
     padding: 15px;
 }
 
@@ -10,4 +10,12 @@
 
 .bib-info .bib-cpright span {
     margin-left: 1em;
+}
+
+.product_wrapper.clearfix .product_image_wrapper {
+    width: 30%;
+}
+
+.product_wrapper.clearfix .summary.entry-summary {
+    width: 60%;
 }
