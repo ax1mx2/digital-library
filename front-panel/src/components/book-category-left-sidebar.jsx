@@ -3,6 +3,7 @@
 import {Component} from 'preact';
 import style from './styles/left-sidebar.scss';
 import BookCategoryListElem from './book-category-list-elem';
+import SearchIcon from './assets/search.svg';
 
 export default class BookCategoryLeftSidebar extends Component {
   constructor() {
@@ -11,11 +12,13 @@ export default class BookCategoryLeftSidebar extends Component {
     this.state = {
       title: '',
       authors: '',
+      mobileOpen: false,
     };
 
     this.search = this.search.bind(this);
     this.setTitle = this.setTitle.bind(this);
     this.setAuthors = this.setAuthors.bind(this);
+    this.toggleMobileOpen = this.toggleMobileOpen.bind(this);
   }
 
   setTitle({target: {value}}) {
@@ -37,9 +40,13 @@ export default class BookCategoryLeftSidebar extends Component {
     }
   }
 
+  toggleMobileOpen() {
+    this.setState({mobileOpen: !this.state.mobileOpen});
+  }
+
   render(props, state, context) {
     const {categories} = props;
-    console.log(categories);
+
     const categoryListElems =
         Array.isArray(categories) && categories.length > 0
             ? (
@@ -52,20 +59,29 @@ export default class BookCategoryLeftSidebar extends Component {
             ) : null;
 
     return (
-        <div className={style.leftSidebar}>
-          <h4>{window.dl_data.search || 'Search'}</h4>
-          <form onSubmit={this.search}>
-            <input type="text" value={state.title} onInput={this.setTitle}
-                   placeholder={window.dl_data.titleSearch || 'Title...'}/>
-            <input type="text" value={state.authors} onInput={this.setAuthors}
-                   placeholder={window.dl_data.authorsSearch || 'Authors...'}/>
-            <button type="submit">
-              {window.dl_data.applySearch || 'Apply'}
-            </button>
-          </form>
-          <h4>{window.dl_data.categories || 'Categories'}</h4>
-          {categoryListElems}
+        <div class={style.leftSidebarContainer}>
+          <button type="button" onClick={this.toggleMobileOpen}
+                  class={style.openButton}>
+            <SearchIcon/>
+          </button>
+          <div class={style.leftSidebar}
+               style={{display: state.mobileOpen ? 'initial' : ''}}>
+            <h4>{window.dl_data.search || 'Search'}</h4>
+            <form onSubmit={this.search}>
+              <input type="text" value={state.title} onInput={this.setTitle}
+                     placeholder={window.dl_data.titleSearch || 'Title...'}/>
+              <input type="text" value={state.authors} onInput={this.setAuthors}
+                     placeholder={window.dl_data.authorsSearch ||
+                     'Authors...'}/>
+              <button type="submit">
+                {window.dl_data.applySearch || 'Apply'}
+              </button>
+            </form>
+            <h4>{window.dl_data.categories || 'Categories'}</h4>
+            {categoryListElems}
+          </div>
         </div>
+
     );
   }
 }

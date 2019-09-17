@@ -2,7 +2,7 @@
 
 import Image from 'pimg';
 
-export default function BookListViewItem({title, img, link}) {
+export default function UpcomingBookListItem({title, img, link}) {
   return (
       <div>
         <a href={link} title={title}>

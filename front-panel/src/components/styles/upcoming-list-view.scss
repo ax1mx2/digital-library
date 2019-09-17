@@ -1,8 +1,12 @@
-.listView {
-  flex: 5;
+.upcomingBooksListView {
+  flex-basis: auto;
+  @media (max-width: 1240px) {
+    flex: 5 0 100%;
+    width: 100%;
+  }
 }
 
-.booksList {
+.upcomingBooksList {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;

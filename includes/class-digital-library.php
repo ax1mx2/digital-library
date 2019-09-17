@@ -102,6 +102,9 @@ final class Digital_Library {
 		// Add cron hooks.
 		add_action( 'add_product_to_product_cat',
 			array( $this, 'add_product_to_product_cat' ), 10, 1 );
+
+		// Adding short codes.
+		add_shortcode( 'dl_upcoming_books', array( $this, 'upcoming_books_shortcode' ) );
 	}
 
 	/**
@@ -232,7 +235,8 @@ final class Digital_Library {
 					'applySearch'      => __( 'Apply', 'digital-library' ),
 					'categories'       => __( 'Categories', 'digital-library' ),
 					'books'            => __( 'Books', 'digital-library' ),
-					'loadingMoreBooks' => __( 'Loading more books...', 'digital-library' )
+					'loadingMoreBooks' => __( 'Loading more books...', 'digital-library' ),
+					'upcoming'         => __( 'Upcoming', 'digital-library' )
 				)
 			);
 
@@ -297,7 +301,7 @@ final class Digital_Library {
 
 		// Display upcoming.
 		$upcoming = get_post_meta( $thepostid, self::BOOK_UPCOMING, true );
-		filter_var( $upcoming, FILTER_VALIDATE_BOOLEAN );
+		$upcoming = filter_var( $upcoming, FILTER_VALIDATE_BOOLEAN );
 		woocommerce_wp_checkbox( array(
 			'id'          => self::BOOK_UPCOMING,
 			'label'       => __( 'Appear In Upcoming', 'digital-library' ),
@@ -305,7 +309,8 @@ final class Digital_Library {
 			'description' => esc_html__(
 				'Check if book should appear in the upcoming section.',
 				'digital-library'
-			)
+			),
+			'value'       => $upcoming ? 'yes' : ''
 		) );
 
 		// Display authors.
@@ -472,7 +477,7 @@ final class Digital_Library {
 		$edition     = &$_POST[ self::BOOK_EDITION ];
 
 		$upcoming = filter_var( $upcoming, FILTER_VALIDATE_BOOLEAN );
-		update_post_meta( $post_id, self::BOOK_UPCOMING, $upcoming ? 'yes' : '' );
+		update_post_meta( $post_id, self::BOOK_UPCOMING, $upcoming );
 
 		// Update book subtitle.
 		if ( ! is_null( $subtitle ) ) {
@@ -752,4 +757,173 @@ final class Digital_Library {
 			);
 		}
 	}
+
+	/**
+	 * Method returns a list with the product categories and the child categories.
+	 *
+	 * @param null $parent_category_id
+	 *
+	 * @return array
+	 */
+	public function get_product_categories( $parent_category_id = null ): array {
+		$categories = get_categories( array(
+			'taxonomy'         => 'product_cat',
+			'hierarchical'     => true,
+			'show_option_none' => '',
+			'hide_empty'       => false,
+			'parent'           => $parent_category_id
+		) );
+
+		$mapped = array();
+		foreach ( $categories as $category ) {
+			$mapped[] = array(
+				'name'            => $category->name,
+				'link'            => get_term_link( $category->term_id ),
+				'thumbnailSrc'    => $this->get_category_thumbnail_src(
+					$category->term_id, array( 50, 50 ) ),
+				'childCategories' => $this->get_product_categories( $category->term_id )
+			);
+		}
+
+		return $mapped;
+	}
+
+	/**
+	 * Method retrieves the URL src of a category thumbnail image.
+	 *
+	 * @param int $category_id
+	 * @param string $size
+	 *
+	 * @return string
+	 */
+	public function get_category_thumbnail_src( int $category_id, $size = 'thumbnail' ): string {
+		$thumbnail_id = get_term_meta( $category_id, 'thumbnail_id', true );
+
+		return empty( $thumbnail_id ) ? '' :
+			wp_get_attachment_image_src( $thumbnail_id, $size )[0];
+	}
+
+	/**
+	 * Method returns the upcoming books as an array.
+	 *
+	 * @param int|null|\WP_Term $product_cat Specifies the product category.
+	 * @param bool $map Specifies whether the book products should be mapped
+	 * to an array.
+	 *
+	 * @return array
+	 */
+	public function get_upcoming_books(
+		$product_cat = null,
+		$map = true
+	): array {
+		$args = array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'orderby'        => 'post_date',
+			'order'          => 'DESC',
+			'paged'          => 1,
+			'posts_per_page' => 20,
+			'meta_query'     => array(
+				array(
+					'key'   => Digital_Library::BOOK_UPCOMING,
+					'value' => true,
+					'type'  => 'BOOLEAN'
+				)
+			),
+			'tax_query'      => array()
+		);
+
+		if ( ! empty( $product_cat ) ) {
+			$product_cat_id = $product_cat instanceof \WP_Term
+				? $product_cat->term_id : $product_cat;
+
+			$args['tax_query'][] = array(
+				'taxonomy'         => 'product_cat',
+				'field'            => 'term_id',
+				'terms'            => $product_cat_id,
+				'include_children' => true
+			);
+		}
+
+		$query = new \WP_Query( $args );
+
+		$books = $query->get_posts();
+
+		if ( $map ) {
+			$books = array_map( array( $this, 'map_book' ), $books );
+		}
+
+		return $books;
+	}
+
+	/**
+	 * Method extracts the necessary information from a product (book) post and
+	 * returns it in an array form.
+	 *
+	 * @param \WP_Post $post
+	 *
+	 * @return array
+	 */
+	public function map_book( \WP_Post $post ): array {
+		$product  = wc_get_product( $post->ID );
+		$image_id = '';
+		if ( ! empty( $product->get_image_id() ) ) {
+			$image_id = $product->get_image_id();
+		} elseif ( ! empty( $product->get_parent_id() ) ) {
+			$parent_product = wc_get_product( $product->get_parent_id() );
+			$image_id       = $parent_product->get_image_id();
+		}
+
+		if ( ! empty( $image_id ) ) {
+			list( $thumbnail_src ) = wp_get_attachment_image_src( $image_id, array( 290, 400 ) );
+			$thumbnail_srcset = wp_get_attachment_image_srcset( $image_id, array( 290, 400 ) );
+		} else {
+			$thumbnail_src    = wc_placeholder_img_src();
+			$thumbnail_srcset = '';
+		}
+
+		$authors = get_post_meta( $post->ID, Digital_Library::BOOK_AUTHORS, true );
+		$authors = preg_split( '/(\r\n|\n|\r)/', $authors, - 1, PREG_SPLIT_NO_EMPTY );
+
+		return array(
+			'title'     => $post->post_title,
+			'img'       => $thumbnail_src,
+			'imgSrcSet' => $thumbnail_srcset,
+			'link'      => get_permalink( $post->ID )
+		);
+	}
+
+	/**
+	 * Method handles displaying the upcoming books.
+	 */
+	public function upcoming_books_shortcode() {
+		$books = $this->get_upcoming_books( null, false );
+
+		$book_ids = array_map( function ( \WP_Post $b ) {
+			return $b->ID;
+		}, $books );
+
+		if ( ! empty( $book_ids ) ) {
+			ob_start();
+			?>
+            <div class="dl-upcoming-books-shortcode">
+                <div>
+                    <h3>
+						<?php esc_html_e( 'Upcoming books', 'digital-library' ); ?>
+                    </h3>
+                </div>
+				<?php
+				foreach ( $book_ids as $book_id ) {
+					echo '<div>' . do_shortcode( "[product id='{$book_ids}']" ) . '</div>';
+				}
+
+				?>
+            </div>
+			<?php
+			return ob_get_clean();
+		}
+
+		return '';
+	}
+
 }

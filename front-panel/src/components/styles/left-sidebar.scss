@@ -1,4 +1,42 @@
+.leftSidebarContainer {
+  @media (max-width: 1240px) {
+    flex: 5 0 100%;
+    width: 100%;
+  }
+}
+
 .leftSidebar {
-  height: 100vh;
   width: 250px;
+  @media (max-width: 1240px) {
+    display: none;
+  }
+  @media (max-width: 1024px) {
+    width: 100%;
+  }
+}
+
+.openButton {
+  display: none !important;
+  box-sizing: content-box;
+  padding: 5px;
+  width: 2em;
+  height: 2em;
+
+  svg {
+    width: 100%;
+  }
+
+  :hover {
+    circle {
+      stroke: #FFF;
+    }
+
+    line {
+      stroke: #FFF;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    display: block !important;
+  }
 }

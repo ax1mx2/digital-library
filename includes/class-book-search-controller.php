@@ -48,7 +48,20 @@ class Book_Search_Controller extends WP_REST_Controller {
 			'order'          => 'DESC',
 			'posts_per_page' => $request['per_page'],
 			'paged'          => $request['page'],
-			'meta_query'     => array(),
+			'meta_query'     => array(
+				array(
+					'relation' => 'OR',
+					array(
+						'key'   => Digital_Library::BOOK_UPCOMING,
+						'value' => false,
+						'type'  => 'BOOLEAN'
+					),
+					array(
+						'key'     => Digital_Library::BOOK_UPCOMING,
+						'compare' => 'NOT EXISTS'
+					)
+				)
+			),
 			'tax_query'      => array()
 		);
 
@@ -84,7 +97,10 @@ class Book_Search_Controller extends WP_REST_Controller {
 
 		$query = new WP_Query( $args );
 
-		$books = array_map( array( $this, 'map_book' ), $query->get_posts() );
+		$books = array_map(
+			array( Digital_Library::instance(), 'map_book' ),
+			$query->get_posts()
+		);
 
 		$response = array(
 			'pages' => $query->max_num_pages,
@@ -94,36 +110,6 @@ class Book_Search_Controller extends WP_REST_Controller {
 		return new WP_REST_Response( $response, 200 );
 	}
 
-	private function map_book( \WP_Post $post ): array {
-		$product  = wc_get_product( $post->ID );
-		$image_id = '';
-		if ( ! empty( $product->get_image_id() ) ) {
-			$image_id = $product->get_image_id();
-		} elseif ( ! empty( $product->get_parent_id() ) ) {
-			$parent_product = wc_get_product( $product->get_parent_id() );
-			$image_id       = $parent_product->get_image_id();
-		}
-
-		if ( ! empty( $image_id ) ) {
-			list( $thumbnail_src ) = wp_get_attachment_image_src( $image_id, array( 290, 400 ) );
-			$thumbnail_srcset = wp_get_attachment_image_srcset( $image_id, array( 290, 400 ) );
-		} else {
-			$thumbnail_src    = wc_placeholder_img_src();
-			$thumbnail_srcset = '';
-		}
-
-		$authors = get_post_meta( $post->ID, Digital_Library::BOOK_AUTHORS, true );
-		$authors = preg_split( '/(\r\n|\n|\r)/', $authors, - 1, PREG_SPLIT_NO_EMPTY );
-
-		return array(
-			'title'     => $post->post_title,
-			'authors'   => $authors,
-			'excerpt'   => $post->post_excerpt,
-			'img'       => $thumbnail_src,
-			'imgSrcSet' => $thumbnail_srcset,
-			'link'      => get_permalink( $post->ID )
-		);
-	}
 
 	public function register_routes() {
 		register_rest_route( $this->namespace, $this->rest_base, array(
@@ -214,5 +200,4 @@ class Book_Search_Controller extends WP_REST_Controller {
 
 		return $groupby;
 	}
-
 }

@@ -15,6 +15,8 @@
  * @version    3.4.0
  */
 
+use DL\Digital_Library;
+
 defined( 'ABSPATH' ) || exit;
 
 get_header( 'shop' );
@@ -29,59 +31,36 @@ get_header( 'shop' );
 do_action( 'woocommerce_before_main_content' );
 
 $category_id = get_queried_object()->term_id;
+$dl          = Digital_Library::instance();
 
-function dl_get_product_categories( $parent_category_id = null ) {
-	$categories = get_categories( array(
-		'taxonomy'         => 'product_cat',
-		'hierarchical'     => true,
-		'show_option_none' => '',
-		'hide_empty'       => false,
-		'parent'           => $parent_category_id
-	) );
+$categories = $dl->get_product_categories( $category_id );
 
-	$mapped = array();
-	foreach ( $categories as $category ) {
-		$mapped[] = array(
-			'name'            => $category->name,
-			'link'            => get_term_link( $category->term_id ),
-			'thumbnailSrc'    => dl_get_category_thumbnail_src( $category->term_id, array( 50, 50 ) ),
-			'childCategories' => dl_get_product_categories( $category->term_id )
-		);
-	}
-
-	return $mapped;
-}
-
-function dl_get_category_thumbnail_src( int $category_id, $size = 'thumbnail' ) {
-	$thumbnail_id = get_term_meta( $category_id, 'thumbnail_id', true );
-
-	return empty( $thumbnail_id ) ? '' :
-		wp_get_attachment_image_src( $thumbnail_id, $size )[0];
-}
-
-$categories             = dl_get_product_categories( $category_id );
 $category_view_app_data = array(
 	'category'   => $category_id,
-	'categories' => $categories
+	'categories' => $categories,
+	'upcoming'   => $dl->get_upcoming_books( $category_id )
 );
 
 $category_thumb_id = get_term_meta( $category_id, 'thumbnail_id', true );
 ?>
     <header class="woocommerce-products-header">
         <div class="category-descriptor">
-		    <?php
-		    if ( ! empty( $category_thumb_id ) ) :
-			    echo wp_get_attachment_image( $category_thumb_id, array( 100, 100 ), false );
-		    endif;
+	        <?php
+	        if ( ! empty( $category_thumb_id ) ) :
+		        echo wp_get_attachment_image(
+			        $category_thumb_id, array( 100, 100 ),
+			        false
+		        );
+	        endif;
 
-		    /**
-		     * Hook: woocommerce_archive_description.
-		     *
-		     * @hooked woocommerce_taxonomy_archive_description - 10
-		     * @hooked woocommerce_product_archive_description - 10
-		     */
-		    do_action( 'woocommerce_archive_description' );
-		    ?>
+	        /**
+	         * Hook: woocommerce_archive_description.
+	         *
+	         * @hooked woocommerce_taxonomy_archive_description - 10
+	         * @hooked woocommerce_product_archive_description - 10
+	         */
+	        do_action( 'woocommerce_archive_description' );
+	        ?>
         </div>
     </header>
 
