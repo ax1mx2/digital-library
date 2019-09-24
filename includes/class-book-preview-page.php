@@ -171,7 +171,12 @@ class Book_Preview_Page {
 			}
 		}
 
-		return $excerpt . ob_get_clean();
+		$buttons = ob_get_clean();
+		if ( ! empty( $buttons ) ) {
+			$buttons = '<div style="text-align: center; padding-bottom: 50px;">' . $buttons . '</div>';
+		}
+
+		return $excerpt . $buttons;
 	}
 
 }
