@@ -1,0 +1,9 @@
+<svg id="kd-th-magnifier" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+    <defs>
+        <style>
+            .dl-search-icon{fill:none;stroke:#c6a866;stroke-linecap:round;stroke-linejoin:round;stroke-width:3px;}
+        </style>
+    </defs>
+    <circle class="dl-search-icon" cx="31.81" cy="18.43" r="13.43"/>
+    <line class="dl-search-icon" x1="21.74" y1="28.74" x2="4.76" y2="45"/>
+</svg>

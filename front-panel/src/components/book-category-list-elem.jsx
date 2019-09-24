@@ -36,13 +36,13 @@ export default class BookCategoryListElem extends Component {
 
     return (
         <div>
-          <a href={link} style={{lineHeight: '50px', display: 'flex'}}>
+          <a href={link} style={{display: 'flex'}}>
             {
               (thumbnailSrc ? <Image class="img" src={thumbnailSrc}
                                      style={{width: '50px', height: '50px'}}/>
                   : <div class="img"/>)
             }
-            <span>{name}</span>
+            <span style={{alignSelf: 'center'}}>{name}</span>
           </a>
           {childCategoryElems}
         </div>
