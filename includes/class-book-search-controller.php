@@ -40,7 +40,6 @@ class Book_Search_Controller extends WP_REST_Controller {
 	 * @return \WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		global $wpdb;
 		$args = array(
 			'post_type'      => self::POST_TYPE,
 			'post_status'    => 'publish',

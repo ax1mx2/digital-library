@@ -670,10 +670,11 @@ final class Digital_Library {
 		?>
         <div style="clear: both;"></div>
         <div class="bib-info">
+	        <?php ob_start(); ?>
 			<?php if ( ! empty( $main_category ) ): ?>
                 <p>
                     <span class="bib-label">
-                        <?php esc_html_e( 'Main category:', 'digtial-library' ) ?>
+                        <?php esc_html_e( 'Main category:', 'digital-library' ) ?>
                     </span>
                     <span class="bib-value">
                         <a href="<?php echo esc_url( get_term_link( $main_category ) ) ?>">
@@ -731,9 +732,13 @@ final class Digital_Library {
                     <em>(<?php echo esc_html( $edition ) ?>)</em>
                 </p>
 	        <?php endif; ?>
+	        <?php $bib = ob_get_flush(); ?>
         </div>
 		<?php
-		echo ob_get_clean();
+		$box = ob_get_clean();
+		if ( ! empty( trim( $bib ) ) ) {
+			echo $box;
+		}
 	}
 
 	/**

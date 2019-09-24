@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-09-17T10:48:17+00:00\n"
+"POT-Creation-Date: 2019-09-24T08:57:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.2.0\n"
 "X-Domain: digital-library\n"
@@ -212,20 +212,24 @@ msgstr ""
 msgid "Book Edition"
 msgstr ""
 
-#: includes/class-digital-library.php:688
+#: includes/class-digital-library.php:677
+msgid "Main category:"
+msgstr ""
+
+#: includes/class-digital-library.php:689
 msgid "Print ISBN:"
 msgstr ""
 
-#: includes/class-digital-library.php:698
+#: includes/class-digital-library.php:699
 msgid "Copyright Information"
 msgstr ""
 
-#: includes/class-digital-library.php:723
+#: includes/class-digital-library.php:724
 msgctxt "Number of pages."
 msgid "%s p."
 msgstr ""
 
-#: includes/class-digital-library.php:912
+#: includes/class-digital-library.php:916
 msgid "Upcoming books"
 msgstr ""
 
