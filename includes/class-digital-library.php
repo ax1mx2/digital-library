@@ -919,9 +919,8 @@ final class Digital_Library {
                 </div>
 				<?php
 				foreach ( $book_ids as $book_id ) {
-					echo '<div>' . do_shortcode( "[product id='{$book_ids}']" ) . '</div>';
+					echo '<div>' . do_shortcode( "[product id='{$book_id}']" ) . '</div>';
 				}
-
 				?>
             </div>
 			<?php

@@ -68,9 +68,14 @@ final class Main_Options_Page {
 	 * Method handles registering the settings menu entries.
 	 */
 	public function add_settings_menus() {
-		add_submenu_page( 'options-general.php', _x( 'Digital Library', 'settings', 'digital-library' ),
-			_x( 'Digital Library', 'settings', 'digital-library' ), 'manage_options',
-			'digital-library-main', array( $this, 'main_page' ) );
+		add_submenu_page(
+			'options-general.php',
+			_x( 'Digital Library', 'settings', 'digital-library' ),
+			_x( 'Digital Library', 'settings', 'digital-library' ),
+			'manage_options',
+			'digital-library-main',
+			array( $this, 'main_page' )
+		);
 	}
 
 	/**
@@ -78,12 +83,12 @@ final class Main_Options_Page {
 	 */
 	public function main_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( 'Unauthorized user' );
+			wp_die( 'Unauthorized user.' );
 		}
 		?>
         <div class="wrap">
-            <h2><?php _e( 'Digital Library Settings', 'digital-library' ) ?></h2>
-            <p><?php _e( 'This plugin enables the creation of digital libraries with the help of WooCommerce.', 'digital-library' ) ?></p>
+            <h2><?php esc_html_e( 'Digital Library Settings', 'digital-library' ) ?></h2>
+            <p><?php esc_html_e( 'This plugin enables the creation of digital libraries with the help of WooCommerce.', 'digital-library' ) ?></p>
             <form method="post" action="options.php">
 				<?php settings_fields( self::OPTIONS_GROUP ) ?>
 				<?php do_settings_sections( self::OPTIONS_GROUP ) ?>
@@ -99,7 +104,7 @@ final class Main_Options_Page {
 	}
 
 	/**
-	 * Method display main options.
+	 * Method displays main options.
 	 */
 	public function do_main_options() {
 		// Sanitize options retrieved from the database.
@@ -107,7 +112,7 @@ final class Main_Options_Page {
 		ob_start();
 		?>
         <tr valign="top">
-            <th scope="row"><?php _e( 'Disable comments for all products.', 'digital-library' ) ?></th>
+            <th scope="row"><?php esc_html_e( 'Disable comments for all products.', 'digital-library' ) ?></th>
             <td><input type="checkbox"
                        name="<?php echo esc_attr( self::DISABLE_PRODUCT_COMMENTS ) ?>"<?php echo $disable_product_comments ? ' checked' : '' ?>>
             </td>
