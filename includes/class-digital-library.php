@@ -78,7 +78,7 @@ final class Digital_Library {
 
 		// Customize WooCommerce.
 		add_filter( 'woocommerce_locate_template',
-			array( $this, 'change_product_category_template' ), 10, 3 );
+			array( $this, 'change_wc_templates' ), 10, 3 );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_scripts' ), 10, 1 );
 
@@ -270,14 +270,17 @@ final class Digital_Library {
 	 *
 	 * @return string The name of the new template file.
 	 */
-	public function change_product_category_template(
+	public function change_wc_templates(
 		string $template,
 		string $template_name = '',
 		string $template_path = ''
 	) {
-		$basename = basename( $template );
-		if ( 'archive-product.php' === $basename ) {
+		if ( 'archive-product.php' === $template_name ) {
 			return $this->dir( 'templates/archive-product.php' );
+		}
+
+		if ( 'single-product/title.php' === $template_name ) {
+			return $this->dir( 'templates/single-product/title.php' );
 		}
 
 		return $template;
