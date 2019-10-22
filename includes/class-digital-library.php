@@ -908,6 +908,8 @@ final class Digital_Library {
 			return $b->ID;
 		}, $books );
 
+		$book_ids = join( ',', $book_ids );
+
 		if ( ! empty( $book_ids ) ) {
 			ob_start();
 			?>
@@ -918,9 +920,7 @@ final class Digital_Library {
                     </h3>
                 </div>
 				<?php
-				foreach ( $book_ids as $book_id ) {
-					echo '<div>' . do_shortcode( "[product id='{$book_id}']" ) . '</div>';
-				}
+				echo '<div>' . do_shortcode( "[products ids='{$book_ids}']" ) . '</div>';
 				?>
             </div>
 			<?php
