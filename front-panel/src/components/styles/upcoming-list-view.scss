@@ -1,6 +1,6 @@
 .upcomingBooksListView {
-  flex-basis: auto;
-  @media (max-width: 1240px) {
+  flex: 1 0;
+  @media (max-width: 980px) {
     flex: 5 0 100%;
     width: 100%;
   }
