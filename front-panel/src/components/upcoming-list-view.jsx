@@ -10,9 +10,9 @@ export class UpcomingListView extends Component {
     const bookElems = upcoming.map(UpcomingBookListItem);
     return (
         <div class={styles.upcomingBooksListView}>
-          <h3 style={{textAlign: 'center'}}>
+          <h4 style={{textAlign: 'center'}}>
             {window.dl_data.upcoming || 'Upcoming'}
-          </h3>
+          </h4>
           <div class={styles.upcomingBooksList}>
             {bookElems}
           </div>

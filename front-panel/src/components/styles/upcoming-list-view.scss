@@ -3,7 +3,13 @@
   @media (max-width: 980px) {
     flex: 5 0 100%;
     width: 100%;
+    margin-left: initial;
+    padding-left: initial;
+    border-left: initial;
   }
+  margin-left: 14px;
+  padding-left: 15px;
+  border-left: 1px solid grey;
 }
 
 .upcomingBooksList {
@@ -14,7 +20,7 @@
   justify-content: space-around;
 
   > div {
-    width: 220px;
+    width: 190px;
     margin-bottom: 10px;
 
     img {
