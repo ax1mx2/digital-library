@@ -13,7 +13,7 @@ require_once __DIR__ . '/class-book-preview-page.php';
  */
 final class Digital_Library {
 
-	public const VERSION = '0.0.1';
+	public const VERSION = '0.0.3';
 	public const REST_API_NAMESPACE = 'dl/v1';
 	// Field name constants
 	public const BOOK_UPCOMING = 'dl_book_upcoming';
@@ -30,6 +30,8 @@ final class Digital_Library {
 	public const BOOK_YEAR = 'dl_book_year';
 	public const BOOK_PAGES = 'dl_book_pages';
 	public const BOOK_EDITION = 'dl_book_edition';
+	public const BOOK_INVENTORY_NO = 'dl_book_inventory_no';
+	public const BOOK_PRINTER = 'dl_book_printer';
 
 	/**
 	 * @var Digital_Library The main instance of the plugin class.
@@ -455,6 +457,22 @@ final class Digital_Library {
 			'label' => __( 'Book Edition', 'digital-library' ),
 		) );
 
+		echo '<div><h2>' . esc_attr( __( 'Old Print Books', 'digital-library' ) ) . '</h2></div>';
+
+		// Display book inventory no.
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_INVENTORY_NO,
+			'type'  => 'text',
+			'label' => __( 'Book Inventory no.', 'digital-library' ),
+		) );
+
+		// Display book printer name.
+		woocommerce_wp_text_input( array(
+			'id'    => self::BOOK_PRINTER,
+			'type'  => 'text',
+			'label' => __( 'Book Printer', 'digital-library' ),
+		) );
+
 		echo '</div>';
 	}
 
@@ -464,20 +482,22 @@ final class Digital_Library {
 	 * @param $post_id int The ID of book.
 	 */
 	public function save_book_fields( int $post_id ) {
-		$upcoming    = &$_POST[ self::BOOK_UPCOMING ];
-		$authors     = &$_POST[ self::BOOK_AUTHORS ];
-		$subtitle    = &$_POST[ self::BOOK_SUBTITLE ];
-		$isbn        = &$_POST[ self::BOOK_ISBN ];
-		$excerpt_id  = &$_POST[ self::BOOK_EXCERPT ];
-		$preview_id  = &$_POST[ self::BOOK_PREVIEW ];
-		$date_public = &$_POST[ self::BOOK_DATE_PUBLIC ];
-		$add_to_cat  = &$_POST[ self::BOOK_ADD_TO_CATEGORY ];
-		$main_cat    = &$_POST[ self::BOOK_MAIN_CATEGORY ];
-		$copyright   = &$_POST[ self::BOOK_COPYRIGHT ];
-		$location    = &$_POST[ self::BOOK_LOCATION ];
-		$year        = &$_POST[ self::BOOK_YEAR ];
-		$pages       = &$_POST[ self::BOOK_PAGES ];
-		$edition     = &$_POST[ self::BOOK_EDITION ];
+		$upcoming     = &$_POST[ self::BOOK_UPCOMING ];
+		$authors      = &$_POST[ self::BOOK_AUTHORS ];
+		$subtitle     = &$_POST[ self::BOOK_SUBTITLE ];
+		$isbn         = &$_POST[ self::BOOK_ISBN ];
+		$excerpt_id   = &$_POST[ self::BOOK_EXCERPT ];
+		$preview_id   = &$_POST[ self::BOOK_PREVIEW ];
+		$date_public  = &$_POST[ self::BOOK_DATE_PUBLIC ];
+		$add_to_cat   = &$_POST[ self::BOOK_ADD_TO_CATEGORY ];
+		$main_cat     = &$_POST[ self::BOOK_MAIN_CATEGORY ];
+		$copyright    = &$_POST[ self::BOOK_COPYRIGHT ];
+		$location     = &$_POST[ self::BOOK_LOCATION ];
+		$year         = &$_POST[ self::BOOK_YEAR ];
+		$pages        = &$_POST[ self::BOOK_PAGES ];
+		$edition      = &$_POST[ self::BOOK_EDITION ];
+		$inventory_no = &$_POST[ self::BOOK_INVENTORY_NO ];
+		$printer      = &$_POST[ self::BOOK_PRINTER ];
 
 		$upcoming = filter_var( $upcoming, FILTER_VALIDATE_BOOLEAN );
 		update_post_meta( $post_id, self::BOOK_UPCOMING, $upcoming );
@@ -600,6 +620,15 @@ final class Digital_Library {
 			update_post_meta( $post_id, self::BOOK_EDITION, $edition );
 		}
 
+		// Update inventory no.
+		if ( ! is_null( $inventory_no ) ) {
+			update_post_meta( $post_id, self::BOOK_INVENTORY_NO, $inventory_no );
+		}
+
+		// Update printer name.
+		if ( ! is_null( $printer ) ) {
+			update_post_meta( $post_id, self::BOOK_PRINTER, $printer );
+		}
 	}
 
 	/**
@@ -658,22 +687,35 @@ final class Digital_Library {
 				$main_category = null;
 			}
 		}
-		$isbn      = get_post_meta( $id, self::BOOK_ISBN, true );
-		$copyright = get_post_meta( $id, self::BOOK_COPYRIGHT, true );
-		$copyright = preg_split( '/\r\n|\n|\r/', $copyright );
-		$copyright = array_filter( $copyright, function ( $c ) {
+		$isbn         = get_post_meta( $id, self::BOOK_ISBN, true );
+		$copyright    = get_post_meta( $id, self::BOOK_COPYRIGHT, true );
+		$copyright    = preg_split( '/\r\n|\n|\r/', $copyright );
+		$copyright    = array_filter( $copyright, function ( $c ) {
 			return ! empty( $c );
 		} );
-		$location  = get_post_meta( $id, self::BOOK_LOCATION, true );
-		$year      = get_post_meta( $id, self::BOOK_YEAR, true );
-		$pages     = get_post_meta( $id, self::BOOK_PAGES, true );
-		$edition   = get_post_meta( $id, self::BOOK_EDITION, true );
+		$location     = get_post_meta( $id, self::BOOK_LOCATION, true );
+		$year         = get_post_meta( $id, self::BOOK_YEAR, true );
+		$year         = sprintf( _x( '%s', 'Year formatting', 'digital-library' ), $year );
+		$pages        = get_post_meta( $id, self::BOOK_PAGES, true );
+		$edition      = get_post_meta( $id, self::BOOK_EDITION, true );
+		$inventory_no = get_post_meta( $id, self::BOOK_INVENTORY_NO, true );
+		$printer      = get_post_meta( $id, self::BOOK_PRINTER, true );
 
 		ob_start();
 		?>
         <div style="clear: both;"></div>
         <div class="bib-info">
 	        <?php ob_start(); ?>
+	        <?php if ( ! empty( $inventory_no ) ): ?>
+                <p>
+                    <span class="bib-label">
+                        <?php esc_html_e( 'Inventory no.:', 'digital-library' ) ?>
+                    </span>
+                    <span class="bib-value">
+                        <?php echo esc_html( $inventory_no ) ?>
+                    </span>
+                </p>
+	        <?php endif; ?>
 			<?php if ( ! empty( $main_category ) ): ?>
                 <p>
                     <span class="bib-label">
@@ -711,6 +753,16 @@ final class Digital_Library {
                     </span>
                 </p>
 			<?php endif; ?>
+	        <?php if ( ! empty( $printer ) ): ?>
+                <p>
+                    <span class="bib-label">
+                        <?php esc_html_e( 'Printer:', 'digital-library' ) ?>
+                    </span>
+                    <span class="bib-value">
+                        <?php echo esc_html( $printer ) ?>
+                    </span>
+                </p>
+	        <?php endif; ?>
 			<?php if ( ! empty( $location ) || ! empty( $year ) || ! empty( $pages ) ): ?>
                 <p>
                     <span class="bib-value">
@@ -753,7 +805,7 @@ final class Digital_Library {
 				'dl_fp_prod',
 				plugin_dir_url( DL_PLUGIN_FILE ) . 'front-panel/css/product.css',
 				array(),
-				'0.0.1'
+				self::VERSION
 			);
 		}
 		if ( is_product_category() ) {
@@ -761,7 +813,7 @@ final class Digital_Library {
 				'dl_fp_prod_cat',
 				plugin_dir_url( DL_PLUGIN_FILE ) . 'front-panel/css/category.css',
 				array(),
-				'0.0.1'
+				self::VERSION
 			);
 		}
 	}

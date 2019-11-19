@@ -5,7 +5,7 @@ namespace DL;
 /*
 Plugin Name: Digital Library
 Description: Auxiliary plugin that enables the creation of digital libraries with WooCommerce.
-Version: 0.0.1
+Version: 0.0.3
 Author: A. Milanov
 License: GPL2
 */
