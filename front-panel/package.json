@@ -23,7 +23,7 @@
     "if-env": "^1.0.4",
     "jest": "^24.9.0",
     "microbundle": "^0.11.0",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.1",
     "preact-cli": "^2.2.1",
     "preact-cli-svg-loader": "^1.0.0",
     "preact-render-to-string": "^4.1.0",
